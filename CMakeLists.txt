@@ -12,3 +12,7 @@ set(CXXFLAGS "-g")
 add_subdirectory(include)
 add_subdirectory(mesh)
 
+
+include(CTest)
+enable_testing()
+add_subdirectory(tests)
