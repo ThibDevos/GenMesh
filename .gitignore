@@ -3,3 +3,5 @@ build/
 CMakeFiles/
 Makefile
 bin/
+html/
+latex/
