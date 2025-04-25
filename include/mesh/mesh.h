@@ -23,9 +23,14 @@ struct gmesh_types<simplex>
 
 
 
+/*!
+\brief A mesh is a topology with a geometry
 
-//T is the element type (simplices for instance), G is the geometrical dimension (1 in 1D, 2 in 2D, 3 in 3D)
-//D is the highest dimension of the elements (2 for triangle or 3 for tetrahedron for instance)
+ 
+T is the element type (simplices for instance), 
+G is the geometrical dimension (1 in 1D, 2 in 2D, 3 in 3D)
+D is the highest dimension of the elements (2 for triangle or 3 for tetrahedron for instance)
+*/
 template <template<int> typename T, int G, int D=G>
 class mesh
 {

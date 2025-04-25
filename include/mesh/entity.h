@@ -5,16 +5,21 @@
 #include <cassert>
 #include <mesh/simplex.h>
 
-//An entity of the mesh is a k-simplex related to other K-simplices
 
-
+/*!
+\brief An entity of the mesh can be:
+- a vertex (dim 0)
+- an edge (dim 1)
+- a face or cell (dime 2)
+- a cell (dim 3)
+*/
 template <template<int> typename T, int D> 
 class entity
 {
   public:
     void set_index(size_t i){this->index = i;}
     int get_index() const {return index;}
-    void print_entity(){std::cout<<"entity of dim "<<D<<". Index: "<<index<<std::endl;}
+    void print_entity(){std::cout<<"entity of dim "<<D<<". Index: "<<index<<std::endl;} //will be removed
 
     template<int D0>
     void set_incidence(std::array<int,T<D>::nb_sub_included[D0]> incident_entities)
