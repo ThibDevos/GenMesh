@@ -7,11 +7,13 @@
 
 //We define here only the topological objects that are the simplices. Nothing related yet with a mesh
 
-
+/*!
+\brief A simplex of D dimension is a polygon of D+1 vertices
+*/
 template <int D>
 struct simplex
 {
-  static constexpr int nb_sub_included[5] = {}; // nb_sub_included[d] is the number of simplices of dimension d contained in the simplex
+  static constexpr int nb_sub_included[5] = {}; /**< nb_sub_included[d] is the number of simplices of dimension d contained in the simplex */
 };
 
 #define SIMPLEX(D, IS)                                  \
