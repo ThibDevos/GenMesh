@@ -1,6 +1,9 @@
 #ifndef CORE_LOG_H
 #define CORE_LOG_H
+
 #include <ctime>
+#include <fstream>
+#include <sstream>
 
 namespace bib
 {
