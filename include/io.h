@@ -143,6 +143,9 @@ struct gmesh
       f_builders[static_cast<int>(gtypes_types[type])](M, iss);  
       getline(f, line);
     }
+    M.topo.set_nb_cells(M.topo.cell_vertex.size());
+    M.topo.set_nb_facets(M.topo.facet_vertex.size());
+    M.topo.set_nb_edges(M.topo.edge_vertex.size());
   }
 
  

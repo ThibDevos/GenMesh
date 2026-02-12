@@ -23,7 +23,7 @@ struct Iterator
 
   Iterator(Mesh * M_, int i) : M(M_), idx(i) {}
 
-  reference operator*() const { return *entity_view<Mesh,D>(M, idx);}
+  value_type operator*() const { return entity_view<Mesh,D>(M, idx);}
   pointer operator->() { return entity_view<Mesh,D>(M, idx);; }
 
   // Prefix increment
@@ -54,14 +54,14 @@ template<typename Mesh, size_t D>
 struct Iterator_range
 {
 
-  Iterator_range(Mesh M_, int begin, int end) : M(M_), begin_idx(begin), end_idx(end) {}
+  Iterator_range(Mesh* M_, size_t begin, size_t end) : M(M_), begin_idx(begin), end_idx(end) {}
   Iterator<Mesh, D> begin(){return Iterator<Mesh ,D>(M, begin_idx);}
   Iterator<Mesh, D> end(){return Iterator<Mesh, D>(M, end_idx);}
 
   private:
     Mesh* M;
-    int begin_idx;
-    int end_idx;
+    size_t begin_idx;
+    size_t end_idx;
 };
 
 /*!

@@ -12,13 +12,9 @@ int main()
   mesh<3> M;
   gmesh<mesh<3>> G;
   G.read_gmsh(M,"test_files/test2_3d.msh");
-  for(auto cv : M.topo.edge_vertex)
+  for(auto c : M.cells())
   {
-    for(auto v : cv)
-    {
-      std::cout<<v<<" ";
-    }
-    std::cout<<std::endl;
+    std::cout<<c.index()<<std::endl;
   }
   return 0;
 }

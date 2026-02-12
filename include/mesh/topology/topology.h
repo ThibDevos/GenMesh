@@ -12,10 +12,20 @@ template<int D>
 class topology
 {
   public:
-    void set_nb_vertices(size_t n){nb_vertices = n;}
+    void set_nb_vertices(size_t n){nb_vertices_ = n;}
+    void set_nb_cells(size_t n){nb_cells_ = n;}
+    void set_nb_facets(size_t n){nb_facets_ = n;}
+    void set_nb_edges(size_t n){nb_edges_ = n;}
 
-    size_t nb_vertices;
-    size_t nb_cells;
+    size_t nb_vertices(){return nb_vertices_;}
+    size_t nb_cells(){return nb_cells_;}
+    size_t nb_facets(){return nb_facets_;}
+    size_t nb_edges(){return nb_edges_;}
+
+    size_t nb_vertices_;
+    size_t nb_cells_;
+    size_t nb_facets_;
+    size_t nb_edges_;
 
     //shape types
     // shape_type[i] gives the type of the shape i. This shape is a cell (dim D).
