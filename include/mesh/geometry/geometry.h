@@ -1,5 +1,8 @@
-#ifndef GEOMETRY
-#define GEOMETRY
+#ifndef MESH_GEOMETRY_GEOMETRY
+#define MESH_GEOMETRY_GEOMETRY
+
+#include <array>
+#include <vector>
 
 /*!
 \brief The geometry of the mesh defines the coordinates

@@ -1,71 +1,98 @@
 #ifndef MESH
 #define MESH
 
-#include <mesh/simplex.h>
-#include <mesh/topology.h>
-#include <mesh/geometry.h>
-#include <file_functions.h>
 #include <string>
 #include <fstream>
 #include <sstream>
 
-template<template<int> typename T>
-struct gmesh_types
+#include <mesh/topology/topology.h>
+#include <mesh/geometry/geometry.h>
+#include <mesh/entity_view.h>
+#include <file_functions.h>
+
+
+
+template<typename Mesh, size_t D>
+struct Iterator
 {
-  static std::array<int, 0> types;
+  using iterator_category = std::forward_iterator_tag;
+  using difference_type   = std::ptrdiff_t;
+  using value_type        = entity_view<Mesh,D> ;
+  using pointer           = value_type*;  
+  using reference         = value_type&;
+
+  Iterator(Mesh * M_, int i) : M(M_), idx(i) {}
+
+  reference operator*() const { return *entity_view<Mesh,D>(M, idx);}
+  pointer operator->() { return entity_view<Mesh,D>(M, idx);; }
+
+  // Prefix increment
+  Iterator &operator++()
+  {
+    idx++;
+    return *this;
+  }
+
+  // Postfix increment
+  Iterator operator++(int)
+  {
+    Iterator tmp = *this;
+    ++(*this);
+    return tmp;
+  }
+
+  friend bool operator==(const Iterator &a, const Iterator &b) { return a.idx == b.idx; };
+  friend bool operator!=(const Iterator &a, const Iterator &b) { return a.idx != b.idx; };
+
+
+private:
+  Mesh* M;
+  size_t idx;
 };
 
-template<>
-struct gmesh_types<simplex>
+template<typename Mesh, size_t D>
+struct Iterator_range
 {
-  static constexpr std::array<int, 4> types = {15,1,2,4};
+
+  Iterator_range(Mesh M_, int begin, int end) : M(M_), begin_idx(begin), end_idx(end) {}
+  Iterator<Mesh, D> begin(){return Iterator<Mesh ,D>(M, begin_idx);}
+  Iterator<Mesh, D> end(){return Iterator<Mesh, D>(M, end_idx);}
+
+  private:
+    Mesh* M;
+    int begin_idx;
+    int end_idx;
 };
-
-
 
 /*!
 \brief A mesh is a topology with a geometry
 
- 
-T is the element type (simplices for instance), 
 G is the geometrical dimension (1 in 1D, 2 in 2D, 3 in 3D)
 D is the highest dimension of the elements (2 for triangle or 3 for tetrahedron for instance)
 */
-template <template<int> typename T, int G, int D=G>
+template <int G, int D=G>
 class mesh
 {
 
   public:
     mesh(){;}
 
-    void build_edges(){topo.build_edges();}
+    static constexpr int dim_topo = D;
+    static constexpr int dim_geo  = G;
 
-    int nb_nodes;
-    int nb_cells;
-  
     geometry<G> geo;
-    topology<T,D> topo;
+    topology<D> topo;
+
+    //iterator on Entity<Mesh,d,G> which allows to loop on the different entities of dim d
+
     
+    Iterator_range<mesh<G, D>, D> cells(){return Iterator_range<mesh<G, D>, D>(this, 0, topo.nb_cells());}
+    Iterator_range<mesh<G, D>, D-1> faces(){return Iterator_range<mesh<G, D>, D-1>(this, 0, topo.nb_faces());}
+    Iterator_range<mesh<G, D>, 1> edges(){return Iterator_range<mesh<G, D>, 1>(this, 0, topo.nb_edges());}
+    Iterator_range<mesh<G, D>, 0> vertices(){return Iterator_range<mesh<G, D>, 0>(this, 0, topo.nb_vertices());}
+
+
 };
 
-template<template<int> typename T, int D0, int G, int D>
-std::array< entity<T,0>*, T<D0>::nb_sub_included[0]> vertices(mesh<T,G,D> const & M, entity<T,D0> const & E)
-{
-  if constexpr (D0 == D)
-    return M.topo.C_CV[E.get_index()];
-  else if constexpr (D0 == 1)
-    return M.topo.C_EV[E.get_index()];
-}
-template<template<int> typename T, int D0, int G, int D>
-std::vector<entity<T,0>> vertices(mesh<T,G,D> const & M)
-{
-  return M.topo.V;
-}
-
-template<template<int> typename T, int G, int D>
-std::vector<entity<T,D>> cells(mesh<T,G,D> const & M)
-{
-  return M.topo.C;
-}
 
 #endif //MESH
