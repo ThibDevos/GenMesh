@@ -14,7 +14,11 @@ int main()
   G.read_gmsh(M,"test_files/test2_3d.msh");
   for(auto c : M.cells())
   {
-    std::cout<<c.index()<<std::endl;
+    for(auto v : c.vertices())
+    {
+      std::cout<<v.index()<<" ";
+    }
+    std::cout<<std::endl;
   }
   return 0;
 }

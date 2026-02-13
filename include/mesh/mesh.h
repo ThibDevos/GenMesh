@@ -13,7 +13,7 @@
 
 
 template<typename Mesh, size_t D>
-struct Iterator
+struct mesh_iterator
 {
   using iterator_category = std::forward_iterator_tag;
   using difference_type   = std::ptrdiff_t;
@@ -21,28 +21,28 @@ struct Iterator
   using pointer           = value_type*;  
   using reference         = value_type&;
 
-  Iterator(Mesh * M_, int i) : M(M_), idx(i) {}
+  mesh_iterator(Mesh * M_, int i) : M(M_), idx(i) {}
 
   value_type operator*() const { return entity_view<Mesh,D>(M, idx);}
-  pointer operator->() { return entity_view<Mesh,D>(M, idx);; }
+  pointer operator->() { return entity_view<Mesh,D>(M, idx); }
 
   // Prefix increment
-  Iterator &operator++()
+  mesh_iterator &operator++()
   {
     idx++;
     return *this;
   }
 
   // Postfix increment
-  Iterator operator++(int)
+  mesh_iterator operator++(int)
   {
-    Iterator tmp = *this;
+    mesh_iterator tmp = *this;
     ++(*this);
     return tmp;
   }
 
-  friend bool operator==(const Iterator &a, const Iterator &b) { return a.idx == b.idx; };
-  friend bool operator!=(const Iterator &a, const Iterator &b) { return a.idx != b.idx; };
+  friend bool operator==(const mesh_iterator &a, const mesh_iterator &b) { return a.idx == b.idx; };
+  friend bool operator!=(const mesh_iterator &a, const mesh_iterator &b) { return a.idx != b.idx; };
 
 
 private:
@@ -51,12 +51,12 @@ private:
 };
 
 template<typename Mesh, size_t D>
-struct Iterator_range
+struct mesh_range
 {
 
-  Iterator_range(Mesh* M_, size_t begin, size_t end) : M(M_), begin_idx(begin), end_idx(end) {}
-  Iterator<Mesh, D> begin(){return Iterator<Mesh ,D>(M, begin_idx);}
-  Iterator<Mesh, D> end(){return Iterator<Mesh, D>(M, end_idx);}
+  mesh_range(Mesh* M_, size_t begin, size_t end) : M(M_), begin_idx(begin), end_idx(end) {}
+  mesh_iterator<Mesh, D> begin(){return mesh_iterator<Mesh ,D>(M, begin_idx);}
+  mesh_iterator<Mesh, D> end(){return mesh_iterator<Mesh, D>(M, end_idx);}
 
   private:
     Mesh* M;
@@ -86,10 +86,10 @@ class mesh
     //iterator on Entity<Mesh,d,G> which allows to loop on the different entities of dim d
 
     
-    Iterator_range<mesh<G, D>, D> cells(){return Iterator_range<mesh<G, D>, D>(this, 0, topo.nb_cells());}
-    Iterator_range<mesh<G, D>, D-1> faces(){return Iterator_range<mesh<G, D>, D-1>(this, 0, topo.nb_faces());}
-    Iterator_range<mesh<G, D>, 1> edges(){return Iterator_range<mesh<G, D>, 1>(this, 0, topo.nb_edges());}
-    Iterator_range<mesh<G, D>, 0> vertices(){return Iterator_range<mesh<G, D>, 0>(this, 0, topo.nb_vertices());}
+    mesh_range<mesh<G, D>, D> cells(){return mesh_range<mesh<G, D>, D>(this, 0, topo.nb_cells());}
+    mesh_range<mesh<G, D>, D-1> faces(){return mesh_range<mesh<G, D>, D-1>(this, 0, topo.nb_faces());}
+    mesh_range<mesh<G, D>, 1> edges(){return mesh_range<mesh<G, D>, 1>(this, 0, topo.nb_edges());}
+    mesh_range<mesh<G, D>, 0> vertices(){return mesh_range<mesh<G, D>, 0>(this, 0, topo.nb_vertices());}
 
 
 };
