@@ -1,7 +1,6 @@
 #ifndef MESH_TOPOLOGY_SHAPE
 #define MESH_TOPOLOGY_SHAPE
 #include <iostream>
-#include <macros.h>
 
 struct vertex
 {
