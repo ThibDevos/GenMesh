@@ -8,7 +8,21 @@
         "type": "tabs",
         "children": [
           {
-            "id": "f2e1196c1e11d736",
+            "id": "6a0f4f24f1e91294",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Mesh.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Mesh"
+            }
+          },
+          {
+            "id": "b8dbd5f28d6923ed",
             "type": "leaf",
             "state": {
               "type": "graph",
@@ -18,20 +32,63 @@
             }
           },
           {
-            "id": "6a0f4f24f1e91294",
+            "id": "692493ada29f9817",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Geometry.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Geometry"
+            }
+          },
+          {
+            "id": "3be2a7ae5d530005",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Shape.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Shape"
+            }
+          },
+          {
+            "id": "511cf3d478560db7",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Concept du maillage.md",
+                "mode": "preview",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Concept du maillage"
+            }
+          },
+          {
+            "id": "54876ff033eed154",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
                 "file": "Entity.md",
-                "mode": "preview",
+                "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
               "title": "Entity"
             }
           }
-        ]
+        ],
+        "currentTab": 5
       }
     ],
     "direction": "vertical"
@@ -190,10 +247,16 @@
       "bases:Create new base": false
     }
   },
-  "active": "f2e1196c1e11d736",
+  "active": "54876ff033eed154",
   "lastOpenFiles": [
-    "Entity.md",
+    "Architecture.md",
+    "Concept du maillage.md",
+    "Mesh.md",
+    "Topology.md",
+    "Geometry.md",
     "Shape.md",
+    "Entity.md",
+    "adjacency.md",
     "Welcome.md"
   ]
 }

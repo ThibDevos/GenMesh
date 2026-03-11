@@ -1,8 +1,8 @@
 
 *Shape describes the topology of a shape: the dimension (D), the number of vertices, edges, ...*
-```
+```cpp
 template<size_t D>
-struct Shape
+struct shape
 {
 	private:
 		int nb_vertices;
@@ -19,3 +19,34 @@ struct Shape
 ```
 
 From there, we can define using macro simplices, hypercubes, prism
+```cpp
+struct vertex : shape<2>
+{
+
+}	
+
+struct edge : shape<2>
+{
+
+}	
+
+template<size_t D> //D> 1
+struct simplex<D> : Shape<D>
+{
+
+}	
+
+template<size_t D> //D> 1
+struct hypercube<D> : Shape<D>
+{
+
+}
+
+
+struct prism<D> : Shape<D>
+{
+
+}
+
+enum ShapeType {vertex, edge, simplex, hypercube, prism};
+```

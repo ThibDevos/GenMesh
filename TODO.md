@@ -1,34 +1,18 @@
-# Documentation
+# mesh
+ [ ] adapt faces(), edges() (if 2D, edges = facets)
+ [ ] unit tests
+ 
+
+ ## topology
+  [ ] methods to build other incidences
+  [ ] graphs for adjacencies
+
+# entity_view
+  [ ] cells(), vertices(), ...
+  [ ] adapt cells(), vertices() (if d<D or d>D or d==D)
 
 
-[X] choisir le type de doc
-
-[ ] faire la doc du code déjà fait
-
-
-# Dossier tests
-
-[ ] Choisir les tests 
-
-[ ] Faire les tests sur ce qui est déjà codé
-
-# Systeme de log
-
-# Introduire un profiler pour optimiser de suite
-
-# Penser au parallèle
-
-[ ] comment appeler MPI ?
-
-[ ] encapsuler tout le framework
-
-
-# PETSc
-
-[ ] Importer PETSc
-
-[ ] Encapsuler
-
-# Mesh
+  # general
+  [ ] make 1 commit with std::ranges in place of iterators (just for the example)
 
 
