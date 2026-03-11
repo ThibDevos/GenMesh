@@ -12,7 +12,7 @@ int main()
   mesh<3> M;
   gmesh<mesh<3>> G;
   G.read_gmsh(M,"test_files/test2_3d.msh");
-  for(auto c : M.cells())
+  for(auto c : M.facets())
   {
     for(auto v : c.vertices())
     {

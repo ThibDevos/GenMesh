@@ -85,11 +85,17 @@ class mesh
 
     //iterator on Entity<Mesh,d,G> which allows to loop on the different entities of dim d
 
-    
-    mesh_range<mesh<G, D>, D> cells(){return mesh_range<mesh<G, D>, D>(this, 0, topo.nb_cells());}
-    mesh_range<mesh<G, D>, D-1> faces(){return mesh_range<mesh<G, D>, D-1>(this, 0, topo.nb_faces());}
-    mesh_range<mesh<G, D>, 1> edges(){return mesh_range<mesh<G, D>, 1>(this, 0, topo.nb_edges());}
-    mesh_range<mesh<G, D>, 0> vertices(){return mesh_range<mesh<G, D>, 0>(this, 0, topo.nb_vertices());}
+    template<size_t d> 
+    mesh_range<mesh<G,D>, d> entities()
+    {
+      static_assert(d<=D);
+      return mesh_range<mesh<G, D>, d>(this, 0, topo.nb_entities(d));
+    }
+
+    auto cells()     { return entities<D>();   }
+    auto facets()    { return entities<D-1>(); }
+    auto edges()     { return entities<1>();   }
+    auto vertices()  { return entities<0>();   }
 
 
 };
