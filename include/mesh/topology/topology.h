@@ -4,7 +4,6 @@
 #include <array>
 #include <vector>
 
-#include <mesh/topology/incidence.h>
 #include <mesh/topology/shape.h>
 #include <core/log.h>
 
@@ -14,6 +13,8 @@
 template<int D>
 class topology
 {
+  using  relation_table = std::vector<std::vector<int>>;
+
   public:
     void set_nb_vertices(size_t n){nb_entities_[0] = n;}
     void set_nb_edges(size_t n){nb_entities_[1] = n;}
@@ -32,13 +33,7 @@ class topology
     // shape_type[i] gives the type of the shape i. This shape is a cell (dim D).
     std::vector<ShapeType> shape_type;
 
-    //Incidences     std::vector<int*> ???
-    incidence<0> vertex_connectivities;
-    incidence<1> edge_connectivities;
-    incidence<D-1> facet_connectivities;
-    incidence<D> cell_connectivities;
-    
-
+    //Incidences
     relation_table connectivities[D+1][D+1]; //the diagonal is empty as it represents the adjacencies
 
 
