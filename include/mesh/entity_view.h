@@ -68,16 +68,29 @@ template <typename Mesh, size_t D>
 class entity_view
 {
   public:
-    entity_view(Mesh * M_, size_t i) : M(M_), index_(i) {}
+    entity_view(Mesh * M_, size_t i) : M(M_), index_(i) {std::cout<<"Entity has dim "<<D<<"\n";}
 
     size_t index(){return index_;}
 
-    entity_range<Mesh,0> vertices()
+    template<size_t d>
+    entity_range<Mesh,d> entities()
     {
-      std::vector<int> & local_vertices = M->topo.cell_vertex[index_];
-      return entity_range<Mesh,0>(M,&local_vertices);
+      if constexpr(D==d)
+      {
+        std::cout<<"Return adjacency  TODO\n";
+        std::vector<int> temp;
+        return entity_range<Mesh,d>(M, &temp);
+      }
+      else
+      {
+        std::vector<int> & local_vertices = M->topo.template get_incidence<D,d>(index_);
+        return entity_range<Mesh,d>(M,&local_vertices);
+      }
     }
-
+    auto cells()     { return entities<Mesh::dim_topo>();   }
+    auto facets()    { return entities<Mesh::dim_topo-1>(); }
+    auto edges()     { return entities<1>();   }
+    auto vertices()  { return entities<0>();   }
   private:
     Mesh* M;
     size_t index_;

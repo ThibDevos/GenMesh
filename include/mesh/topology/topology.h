@@ -4,6 +4,7 @@
 #include <array>
 #include <vector>
 
+#include <mesh/topology/incidence.h>
 #include <mesh/topology/shape.h>
 
 /*!
@@ -31,10 +32,27 @@ class topology
     std::vector<ShapeType> shape_type;
 
     //Incidences     std::vector<int*> ???
-    std::vector<std::vector<int>> cell_vertex; //Cell_vertex[i] gives the list of indices of the vertices incident to cell i
-    std::vector<std::vector<int>> facet_vertex; //Cell_vertex[i] gives the list of indices of the vertices incident to cell i
-    std::vector<std::vector<int>> edge_vertex; //Cell_vertex[i] gives the list of indices of the vertices incident to cell i
+    incidence<0> vertex_connectivities;
+    incidence<1> edge_connectivities;
+    incidence<D-1> facet_connectivities;
+    incidence<D> cell_connectivities;
+    
 
+    relation_table connectivities[D+1][D+1]; //the diagonal is empty as it represents the adjacencies
+
+
+
+    template<size_t D1, size_t D2>
+    std::vector<int>& get_incidence(size_t index)
+    {
+      static_assert(D1!=D2);
+      if(connectivities[D1][D1].size()==0)
+      {
+        std::cout<<"to build\n";
+        exit(0);
+      }
+      return connectivities[D1][D2][index];
+    }
     
 
     //Adjacence

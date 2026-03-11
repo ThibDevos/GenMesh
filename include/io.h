@@ -22,8 +22,9 @@ struct gmesh
       {15, ShapeType::vertex}, {1, ShapeType::edge}, {2, ShapeType::triangle}, {3, ShapeType::quadrangle}, {4, ShapeType::tetrahedron}, {5, ShapeType::hexahedron}, {6, ShapeType::prism}, {7, ShapeType::pyramid}};
 
 
+  
   template<typename Shape>
-  static void build_element(Mesh & M, std::istringstream & iss)
+  static void build_element_from_vertices(Mesh & M, std::istringstream & iss)
   {
     int n_vertices = Shape::nb_sub_included[0];
     std::vector<int> local_vertices(n_vertices);
@@ -31,34 +32,36 @@ struct gmesh
     {
       iss>>local_vertices[i];
     }
-    switch (Shape::D)
-    {
-    case M.dim_topo:
-      M.topo.cell_vertex.push_back(local_vertices);
-      break;
-    case M.dim_topo - 1:
-      M.topo.facet_vertex.push_back(local_vertices);
-      break;
-    case 1:
-      M.topo.edge_vertex.push_back(local_vertices);
-      break;
+    M.topo.connectivities[Shape::D][0].push_back(local_vertices);
+    // switch (Shape::D)
+    // {
+    // case M.dim_topo: //cell
+    //   M.topo.connectivi
+    //   break;
+    // case M.dim_topo - 1: //facet 
+    //    M.topo.facet_connectivities.lowest.push_back(local_vertices);
+    //   break;
+    // case 1: //edge
+    //    M.topo.edge_connectivities.lowest.push_back(local_vertices);
+    //   break;
     
-    default:
-      break;
-    }
+    // default:
+    //   break;
+    // }
   }
+
   using builders = void(*)(Mesh & M, std::istringstream & iss);
 
   static inline constexpr std::array<builders,
   static_cast<int>(ShapeType::count)> f_builders=  { //should follow the order of enum ShapeType in shape.h
-    &build_element<vertex>,
-    &build_element<edge>,
-    &build_element<triangle>,
-    &build_element<tetrahedron>,
-    &build_element<quadrangle>,
-    &build_element<hexahedron>,
-    &build_element<prism>,
-    &build_element<pyramid>
+    &build_element_from_vertices<vertex>,
+    &build_element_from_vertices<edge>,
+    &build_element_from_vertices<triangle>,
+    &build_element_from_vertices<tetrahedron>,
+    &build_element_from_vertices<quadrangle>,
+    &build_element_from_vertices<hexahedron>,
+    &build_element_from_vertices<prism>,
+    &build_element_from_vertices<pyramid>
   };
 
   
@@ -104,9 +107,9 @@ struct gmesh
     iss.str(line);
     int nb_vertices;
     iss >> nb_vertices;
+    std::cout<<"nb vertices : "<<nb_vertices<<std::endl;
     M.topo.set_nb_vertices(nb_vertices);
     M.geo.coords.resize(nb_vertices);
-
 
     int index = 0;
     double x = 0.;
@@ -143,9 +146,11 @@ struct gmesh
       f_builders[static_cast<int>(gtypes_types[type])](M, iss);  
       getline(f, line);
     }
-    M.topo.set_nb_cells(M.topo.cell_vertex.size());
-    M.topo.set_nb_facets(M.topo.facet_vertex.size());
-    M.topo.set_nb_edges(M.topo.edge_vertex.size());
+
+    M.topo.set_nb_cells(M.topo.connectivities[M.dim_topo][0].size());
+    M.topo.set_nb_edges(M.topo.connectivities[1][0].size());
+    if(M.dim_topo==3) //for dim_topo <3, the facets correspond to the edges or the vertices, so it is already set
+      M.topo.set_nb_facets(M.topo.connectivities[M.dim_topo-1][0].size());
   }
 
  
