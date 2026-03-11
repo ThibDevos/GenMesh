@@ -6,6 +6,7 @@
 
 #include <mesh/topology/incidence.h>
 #include <mesh/topology/shape.h>
+#include <core/log.h>
 
 /*!
 \brief The topology of the mesh is set of the connectivities between the different shapes
@@ -48,8 +49,7 @@ class topology
       static_assert(D1!=D2);
       if(connectivities[D1][D1].size()==0)
       {
-        std::cout<<"to build\n";
-        exit(0);
+        bib::error("need to build the connectivities");
       }
       return connectivities[D1][D2][index];
     }
