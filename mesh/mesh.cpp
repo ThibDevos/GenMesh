@@ -39,14 +39,24 @@ int main()
 
   std::cout<<M2.topo.nb_vertices()<<" "<<M2.topo.nb_edges()<<" "<<M2.topo.nb_facets()<<" "<<M2.topo.nb_cells()<<"\n";
   std::cout<<"vertices :"<<M2.topo.nb_vertices()<<" \n";
-  for(auto c : M2.facets())
+  for(auto c : M2.cells())
   {
-    for(auto v : c.cells())
+    for(auto v : c.vertices())
       {
         std::cout<<v.index()<<" ";
       }
       std::cout<<"\n";
   }
+  std::cout<<"inverse"<<std::endl;
+  for(auto && v : M2.vertices())
+  {
+    for(auto && c : v.cells())
+      {
+        std::cout<<c.index()<<" ";
+      }
+      std::cout<<"\n";
+  }
+
 
   std::cout<<std::endl;
   std::cout<<"========3D========\n";
