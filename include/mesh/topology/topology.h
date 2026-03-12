@@ -4,6 +4,7 @@
 #include <array>
 #include <vector>
 
+#include <mesh/topology/connectivities.h>
 #include <mesh/topology/shape.h>
 #include <core/log.h>
 
@@ -13,7 +14,7 @@
 template<int D>
 class topology
 {
-  using  relation_table = std::vector<std::vector<int>>;
+  
 
   public:
     void set_nb_vertices(size_t n){nb_entities_[0] = n;}
@@ -33,25 +34,19 @@ class topology
     // shape_type[i] gives the type of the shape i. This shape is a cell (dim D).
     std::vector<ShapeType> shape_type;
 
-    //Incidences
-    relation_table connectivities[D+1][D+1]; //the diagonal is empty as it represents the adjacencies
-
-
+    Connectivities<D> connectivities;
 
     template<size_t D1, size_t D2>
-    std::vector<int>& get_incidence(size_t index)
+    std::vector<size_t>& get_connectivities(size_t index)
     {
-      static_assert(D1!=D2);
-      if(connectivities[D1][D1].size()==0)
+      // std::cout<<"Get connectivities "<<D1<<" "<<D2<<"\n";
+      if(connectivities.C[D1][D2].size()==0)
       {
-        bib::error("need to build the connectivities");
+        connectivities.C[D1][D2].resize(nb_entities_[D1]);
+        connectivities.template build_connectivities<D1,D2>();
       }
-      return connectivities[D1][D2][index];
+      return connectivities.C[D1][D2][index];
     }
-    
-
-    //Adjacence
-
 };
 
 
