@@ -27,12 +27,13 @@ struct gmesh
   static void build_element_from_vertices(Mesh & M, std::istringstream & iss)
   {
     int n_vertices = Shape::nb_sub_included[0];
-    std::vector<int> local_vertices(n_vertices);
+    std::vector<size_t> local_vertices(n_vertices);
     for(int i=0; i<n_vertices; ++i)
     {
       iss>>local_vertices[i];
+      --local_vertices[i];
     }
-    M.topo.connectivities[Shape::D][0].push_back(local_vertices);
+    M.topo.connectivities.C[Shape::D][0].push_back(local_vertices);
     // switch (Shape::D)
     // {
     // case M.dim_topo: //cell
@@ -147,10 +148,10 @@ struct gmesh
       getline(f, line);
     }
 
-    M.topo.set_nb_cells(M.topo.connectivities[M.dim_topo][0].size());
-    M.topo.set_nb_edges(M.topo.connectivities[1][0].size());
+    M.topo.set_nb_cells(M.topo.connectivities.C[M.dim_topo][0].size());
+    M.topo.set_nb_edges(M.topo.connectivities.C[1][0].size());
     if(M.dim_topo==3) //for dim_topo <3, the facets correspond to the edges or the vertices, so it is already set
-      M.topo.set_nb_facets(M.topo.connectivities[M.dim_topo-1][0].size());
+      M.topo.set_nb_facets(M.topo.connectivities.C[M.dim_topo-1][0].size());
   }
 
  
