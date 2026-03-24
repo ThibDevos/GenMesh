@@ -43,7 +43,7 @@ class topology
       if(connectivities.C[D1][D2].size()==0)
       {
         connectivities.C[D1][D2].resize(nb_entities_[D1]);
-        connectivities.template build_connectivities<D1,D2>();
+        connectivities.template build_connectivities<D1,D2>(nb_entities_);
       }
       return connectivities.C[D1][D2][index];
     }

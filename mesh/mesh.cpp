@@ -48,11 +48,11 @@ int main()
       std::cout<<"\n";
   }
   std::cout<<"inverse"<<std::endl;
-  for(auto && v : M2.vertices())
+  for(auto && c : M2.cells())
   {
-    for(auto && c : v.cells())
+    for(auto && e : c.edges())
       {
-        std::cout<<c.index()<<" ";
+        std::cout<<e.index()<<" ";
       }
       std::cout<<"\n";
   }
