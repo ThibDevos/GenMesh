@@ -3,8 +3,7 @@
  
 
  ## topology
-  [ ] methods to build other incidences
-  [ ] graphs for adjacencies
+  [ ] test for connectivities
 
 # entity_view
  
