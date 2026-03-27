@@ -42,7 +42,7 @@ class topology
     std::vector<int>& get_incidence(size_t index)
     {
       static_assert(D1!=D2);
-      if(connectivities[D1][D1].size()==0)
+      if(connectivities[D1][D2].size()==0)
       {
         bib::error("need to build the connectivities");
       }
