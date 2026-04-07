@@ -97,7 +97,7 @@ struct gmesh
 
     if (!f)
     {
-      std::runtime_error("mesh::read : file does not exist");
+      throw std::runtime_error("mesh::read : file does not exist");
     }
     getline(f, line);
     while (line != "$Nodes")
