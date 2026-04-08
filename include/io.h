@@ -108,7 +108,6 @@ struct gmesh
     iss.str(line);
     int nb_vertices;
     iss >> nb_vertices;
-    std::cout<<"nb vertices : "<<nb_vertices<<std::endl;
     M.topo.set_nb_vertices(nb_vertices);
     M.geo.coords.resize(nb_vertices);
 
