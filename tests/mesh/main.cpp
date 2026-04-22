@@ -61,6 +61,8 @@ int main()
   G3.read_gmsh(M3,std::string(TEST_FILES_DIR)+"/test2_3d.msh");
   message("C3D_1_0");
   test_topology_connectivities<3, 1, 0>(M3.topo, C3D_1_0);
+  message("C3D_2_0");
+  test_topology_connectivities<3, 2, 0>(M3.topo, C3D_2_0);
   message("C3D_0_1");
   test_topology_connectivities<3, 0, 1>(M3.topo, C3D_0_1);
   message("C3D_3_0");
