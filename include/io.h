@@ -33,7 +33,8 @@ struct gmesh
       iss>>local_vertices[i];
       --local_vertices[i];
     }
-    M.topo.connectivities.C[Shape::D][0].push_back(local_vertices);
+    M.topo.connectivities[Shape::D][0].push_back(local_vertices);
+    
     // switch (Shape::D)
     // {
     // case M.dim_topo: //cell
@@ -130,9 +131,6 @@ struct gmesh
     go_to_keyword(f, "$Elements");
     getline(f, line); //$Elements
     getline(f, line); //$nb elements
-    int nb_dim3 = 0;
-    int nb_dim2 = 0;
-    int nb_dim1 = 0;
     int dim_el;
     int type = 0;
     int tags = 0;
@@ -143,14 +141,17 @@ struct gmesh
       iss >> trash >> type; // last trash is nb of tag (not used here)
       iss >> trash; //trash = nb of tags
       for(int i=0; i<trash; ++i){iss>>tags;} 
-      f_builders[static_cast<int>(gtypes_types[type])](M, iss);  
+      dim_el = gtypes_dim[type];
+      // Only add elements that belong to the mesh domain (ignore boundary elements for now)
+      if(dim_el == M.dim_topo) {
+        f_builders[static_cast<int>(gtypes_types[type])](M, iss);
+        M.topo.shape_type.push_back(gtypes_types[type]);
+      }
       getline(f, line);
     }
 
-    M.topo.set_nb_cells(M.topo.connectivities.C[M.dim_topo][0].size());
-    M.topo.set_nb_edges(M.topo.connectivities.C[1][0].size());
-    if(M.dim_topo==3) //for dim_topo <3, the facets correspond to the edges or the vertices, so it is already set
-      M.topo.set_nb_facets(M.topo.connectivities.C[M.dim_topo-1][0].size());
+    M.topo.set_nb_cells(M.topo.connectivities[M.dim_topo][0].size());
+  
   }
 
  
