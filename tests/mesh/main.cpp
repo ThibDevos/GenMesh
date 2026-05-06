@@ -89,6 +89,13 @@ int main()
     G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d.msh");
     test_topology_connectivities<2, 2, 1>(M2.topo, C2D_2_1);
   }
+  {
+    message("C2D_1_2");
+    mesh<2> M2;
+    gmesh<mesh<2>> G2;
+    G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d.msh");
+    test_topology_connectivities<2, 1, 2>(M2.topo, C2D_1_2);
+  }
 
   mesh<3> M3;
   gmesh<mesh<3>> G3;
