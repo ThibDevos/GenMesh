@@ -59,7 +59,6 @@ Build connectivities C[D1][D2]
   void build_connectivities()
   {
     bib::debug_message("start building %d %d", D1, D2);
-
     auto inverse_relation = [this](int d1, int d2)
     {
       if (this->nb_entities_[d1] != 0)
@@ -76,9 +75,10 @@ Build connectivities C[D1][D2]
       }
     };
 
+    
     if (connectivities[D2][D1].size() != 0) // if C[D2][D1] is already built, we can build C[D1][D2] by inverting the relation table C[D2][D1]
     {
-       bib::debug_message("In case we can inverse");
+      bib::debug_message("In case we can inverse");
       inverse_relation(D1,D2);
     }
     else // we use the relation C[D1][0] and C[0][D2]
@@ -101,6 +101,12 @@ Build connectivities C[D1][D2]
       {
         bib::debug_message("case D1==0");
         build_connectivities<D2, D1>();
+        return;
+      }
+      if constexpr (D1<D2)
+      {
+        build_connectivities<D2,D1>();
+        inverse_relation(D1,D2);
         return;
       }
       if (connectivities[D2][0].size() == 0 )
