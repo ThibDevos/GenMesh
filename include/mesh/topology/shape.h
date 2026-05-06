@@ -93,6 +93,41 @@ namespace shapes
     {prism::face_vertex_data, prism::face_offsets, prism::nb_sub_included[2]},
     {pyramid::face_vertex_data, pyramid::face_offsets, pyramid::nb_sub_included[2]}
   };
+
+
+  ShapeType get_shape_from_dim_vertices(size_t dim, size_t nb_vert)
+  {
+    if(dim==0) return ShapeType::vertex;
+    if(dim==1) return ShapeType::edge;
+    if(dim==2)
+    {
+      switch (nb_vert)
+      {
+      case 3:
+        return ShapeType::triangle;
+        break;
+      case 4:
+        return ShapeType::quadrangle;
+        break;
+      }
+    }
+    if(dim==3)
+    {
+      switch (nb_vert)
+      {
+      case 4:
+        return ShapeType::tetrahedron;
+        break;
+      case 5:
+        return ShapeType::pyramid;
+        break;
+      case 6:
+        return ShapeType::prism;
+        break;
+      }
+    }
+    return ShapeType::count;
+  }
 };
 
 #endif
