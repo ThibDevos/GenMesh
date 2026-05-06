@@ -14,19 +14,32 @@ gives the indices of the entities of dim k that share an entity of dim k-1 with 
 template<size_t D>
 struct Connectivities
 {
+  
+  Connectivities(topology<D> * topo) : topo(topo) {}
+  
   using  relation_table = std::vector<std::vector<size_t>>;
   relation_table C[D+1][D+1]; 
+  topology<D> * topo;
 
- 
+  
   /*!
   Build connectivities C[D1][D2]
   */
   template<size_t D1, size_t D2>
   void build_connectivities(std::array<size_t, D+1> const & nb_entities)
   {
-    std::cout<<"build connectivities " <<D1<<" "<<D2<<std::endl;
-    // std::cout<<"Size C[D1][D2]: "<<C[D1][D2].size()<<std::endl;
-    if(C[D2][D1].size()!=0)
+    if constexpr (D2==0) //relation d-0 are built from cell-vertex relations and vertex-entity relations defined in shape.h
+    {
+      std::unordered_set<size_t> set;
+      for(int i=0; i<nb_entities[D]; ++i)
+      {
+        
+      }
+    }
+    {
+
+    }
+    if(C[D2][D1].size()!=0) //if C[D2][D1] is already built, we can build C[D1][D2] by inverting the relation table C[D2][D1]
     {
       for(int i = 0; i<C[D2][D1].size(); ++i)
       {
@@ -38,8 +51,9 @@ struct Connectivities
         }
       }
     }
-    else // C[D1][D2] = C[D1][k] \circ C[k][D2]. We use k=0 as the relations D->0 are already done
+    else // C[D1][D2] = C[D1][k] \circ C[k][D2]. We use k=0
     {
+
       if(C[0][D2].size()==0 && C[D2][0].size()!=0)
       {
         C[0][D2].resize(nb_entities[0]);
