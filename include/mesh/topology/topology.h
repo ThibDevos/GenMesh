@@ -36,7 +36,7 @@ public:
 
   // shape types
   //  shape_type[i] gives the type of the shape i. This shape is a cell (dim D).
-  std::vector<ShapeType> shape_type;
+  std::vector<shapes::ShapeType> shape_type;
 
   relation_table connectivities[D + 1][D + 1];
 

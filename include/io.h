@@ -16,10 +16,13 @@
 template<typename Mesh>
 struct gmesh
 {
+
+
+
  std::map<int, int> gtypes_dim{
       {15, 0}, {1, 1}, {2, 2}, {3, 2}, {4, 3}, {5, 3}, {6, 3}, {7, 3}};
-  std::map<int, ShapeType> gtypes_types{
-      {15, ShapeType::vertex}, {1, ShapeType::edge}, {2, ShapeType::triangle}, {3, ShapeType::quadrangle}, {4, ShapeType::tetrahedron}, {5, ShapeType::hexahedron}, {6, ShapeType::prism}, {7, ShapeType::pyramid}};
+  std::map<int, shapes::ShapeType> gtypes_types{
+      {15, shapes::ShapeType::vertex}, {1, shapes::ShapeType::edge}, {2, shapes::ShapeType::triangle}, {3, shapes::ShapeType::quadrangle}, {4, shapes::ShapeType::tetrahedron}, {5, shapes::ShapeType::hexahedron}, {6, shapes::ShapeType::prism}, {7, shapes::ShapeType::pyramid}};
 
 
   
@@ -55,15 +58,15 @@ struct gmesh
   using builders = void(*)(Mesh & M, std::istringstream & iss);
 
   static inline constexpr std::array<builders,
-  static_cast<int>(ShapeType::count)> f_builders=  { //should follow the order of enum ShapeType in shape.h
-    &build_element_from_vertices<vertex>,
-    &build_element_from_vertices<edge>,
-    &build_element_from_vertices<triangle>,
-    &build_element_from_vertices<tetrahedron>,
-    &build_element_from_vertices<quadrangle>,
-    &build_element_from_vertices<hexahedron>,
-    &build_element_from_vertices<prism>,
-    &build_element_from_vertices<pyramid>
+  static_cast<int>(shapes::ShapeType::count)> f_builders=  { //should follow the order of enum ShapeType in shape.h
+    &build_element_from_vertices<shapes::vertex>,
+    &build_element_from_vertices<shapes::edge>,
+    &build_element_from_vertices<shapes::triangle>,
+    &build_element_from_vertices<shapes::tetrahedron>,
+    &build_element_from_vertices<shapes::quadrangle>,
+    &build_element_from_vertices<shapes::hexahedron>,
+    &build_element_from_vertices<shapes::prism>,
+    &build_element_from_vertices<shapes::pyramid>
   };
 
   
