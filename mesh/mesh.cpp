@@ -24,7 +24,6 @@ int main()
   // std::cout<<std::endl;
   // std::cout<<"========1D========\n";
 
-<<<<<<< Updated upstream
   std::cout<<M1.topo.nb_vertices()<<" "<<M1.topo.nb_edges()<<" "<<M1.topo.nb_facets()<<" "<<M1.topo.nb_cells()<<"\n";
   for(auto c : M1.facets())
   {
@@ -34,22 +33,10 @@ int main()
     //   }
     //   std::cout<<"\n";
   }
-=======
-  // std::cout<<M1.topo.nb_vertices()<<" "<<M1.topo.nb_edges()<<" "<<M1.topo.nb_facets()<<" "<<M1.topo.nb_cells()<<"\n";
-  // // for(auto c : M1.facets())
-  // // {
-  //   // for(auto v : c.vertices())
-  //   //   {
-  //   //     std::cout<<v.index()<<" ";
-  //   //   }
-  //   //   std::cout<<"\n";
-  // // }
->>>>>>> Stashed changes
 
   // std::cout<<std::endl;
   // std::cout<<"========2D========\n";
 
-<<<<<<< Updated upstream
   std::cout<<M2.topo.nb_vertices()<<" "<<M2.topo.nb_edges()<<" "<<M2.topo.nb_facets()<<" "<<M2.topo.nb_cells()<<"\n";
   std::cout<<"vertices :"<<M2.topo.nb_vertices()<<" \n";
   for(auto c : M2.facets())
@@ -77,11 +64,6 @@ int main()
   }
 
   // for(auto c : M.cells())
-=======
-  // std::cout<<M2.topo.nb_vertices()<<" "<<M2.topo.nb_edges()<<" "<<M2.topo.nb_facets()<<" "<<M2.topo.nb_cells()<<"\n";
-  // std::cout<<"vertices :"<<M2.topo.nb_vertices()<<" \n";
-  // for(auto c : M2.cells())
->>>>>>> Stashed changes
   // {
   //   for(auto v : c.vertices())
   //     {
