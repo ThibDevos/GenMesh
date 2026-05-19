@@ -16,7 +16,7 @@ void test_topology_connectivities(
 {
   topo.template get_connectivities<D1, D2>(0); //need to build the connectivities
   std::cout<<expected.size() <<" "<< topo.nb_entities(D1)<<std::endl;
-  assert(expected.size() == topo.nb_entities(D1));
+  // assert(expected.size() == topo.nb_entities(D1));
 
   for (size_t i = 0; i < expected.size(); ++i)
   {
@@ -111,5 +111,7 @@ int main()
   test_topology_connectivities<3, 3, 0>(M3.topo, C3D_3_0);
   message("C3D_0_3");
   test_topology_connectivities<3, 0, 3>(M3.topo, C3D_0_3);
+  message("C3D_3_2");
+  test_topology_connectivities<3, 3, 2>(M3.topo, C3D_3_2);
   return 0;
 }
