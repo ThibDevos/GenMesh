@@ -16,7 +16,7 @@ void test_topology_connectivities(
 {
   topo.template get_connectivities<D1, D2>(0); //need to build the connectivities
   std::cout<<expected.size() <<" "<< topo.nb_entities(D1)<<std::endl;
-  // assert(expected.size() == topo.nb_entities(D1));
+  assert(expected.size() == topo.nb_entities(D1));
 
   for (size_t i = 0; i < expected.size(); ++i)
   {
@@ -97,21 +97,61 @@ int main()
     test_topology_connectivities<2, 1, 2>(M2.topo, C2D_1_2);
   }
 
-  mesh<3> M3;
-  gmesh<mesh<3>> G3;
   message("Test 3D connectivities");
-  G3.read_gmsh(M3,std::string(TEST_FILES_DIR)+"/test2_3d.msh");
-  message("C3D_1_0");
-  test_topology_connectivities<3, 1, 0>(M3.topo, C3D_1_0);
-  message("C3D_2_0");
-  test_topology_connectivities<3, 2, 0>(M3.topo, C3D_2_0);
-  message("C3D_0_1");
-  test_topology_connectivities<3, 0, 1>(M3.topo, C3D_0_1);
-  message("C3D_3_0");
-  test_topology_connectivities<3, 3, 0>(M3.topo, C3D_3_0);
-  message("C3D_0_3");
-  test_topology_connectivities<3, 0, 3>(M3.topo, C3D_0_3);
-  message("C3D_3_2");
-  test_topology_connectivities<3, 3, 2>(M3.topo, C3D_3_2);
+  {
+    message("C3D_1_0");
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
+    test_topology_connectivities<3, 1, 0>(M3.topo, C3D_1_0);
+  }
+
+  {
+    message("C3D_0_1");
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
+    test_topology_connectivities<3, 0, 1>(M3.topo, C3D_0_1);
+  }
+
+  {
+    message("C3D_2_0");
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
+    test_topology_connectivities<3, 2, 0>(M3.topo, C3D_2_0);
+  }
+
+  {
+    message("C3D_2_1");
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
+    test_topology_connectivities<3, 2, 1>(M3.topo, C3D_2_1);
+  }
+
+  {
+    message("C3D_3_0");
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
+    test_topology_connectivities<3, 3, 0>(M3.topo, C3D_3_0);
+  }
+
+  {
+    message("C3D_0_3");
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
+    test_topology_connectivities<3, 0, 3>(M3.topo, C3D_0_3);
+  }
+
+  {
+    message("C3D_3_2");
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
+    test_topology_connectivities<3, 3, 2>(M3.topo, C3D_3_2);
+  }
   return 0;
 }
