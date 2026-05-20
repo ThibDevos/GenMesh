@@ -99,19 +99,47 @@ int main()
 
   message("Test 3D connectivities");
   {
+    message("C3D_0_1");
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
+    test_topology_connectivities<3, 0, 1>(M3.topo, C3D_0_1);
+  }
+  {
+    message("C3D_0_2");
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
+    test_topology_connectivities<3, 0, 2>(M3.topo, C3D_0_2);
+  }
+  {
+    message("C3D_0_3");
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
+    test_topology_connectivities<3, 0, 3>(M3.topo, C3D_0_3);
+  }
+
+  {
     message("C3D_1_0");
     mesh<3> M3;
     gmesh<mesh<3>> G3;
     G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
     test_topology_connectivities<3, 1, 0>(M3.topo, C3D_1_0);
   }
-
   {
-    message("C3D_0_1");
+    message("C3D_1_2");
     mesh<3> M3;
     gmesh<mesh<3>> G3;
     G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
-    test_topology_connectivities<3, 0, 1>(M3.topo, C3D_0_1);
+    test_topology_connectivities<3, 1, 2>(M3.topo, C3D_1_2);
+  }
+  {
+    message("C3D_1_3");
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
+    test_topology_connectivities<3, 1, 3>(M3.topo, C3D_1_3);
   }
 
   {
@@ -129,6 +157,13 @@ int main()
     G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
     test_topology_connectivities<3, 2, 1>(M3.topo, C3D_2_1);
   }
+  {
+    message("C3D_2_3");
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
+    test_topology_connectivities<3, 2, 3>(M3.topo, C3D_2_3);
+  }
 
   {
     message("C3D_3_0");
@@ -139,11 +174,11 @@ int main()
   }
 
   {
-    message("C3D_0_3");
+    message("C3D_3_1");
     mesh<3> M3;
     gmesh<mesh<3>> G3;
     G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
-    test_topology_connectivities<3, 0, 3>(M3.topo, C3D_0_3);
+    test_topology_connectivities<3, 3, 1>(M3.topo, C3D_3_1);
   }
 
   {
