@@ -45,8 +45,6 @@ public:
   {
     if (connectivities[D1][D2].size() == 0)
     {
-      // if (D1 == 0)
-      //   connectivities[D1][D2].resize(nb_entities_[D1]);
       build_connectivities<D1, D2>();
     }
     return connectivities[D1][D2][index];
@@ -56,8 +54,6 @@ public:
   {
     if (connectivities[D1][D2].size() == 0)
     {
-      // if (D1 == 0)
-      //   connectivities[D1][D2].resize(nb_entities_[D1]);
       build_connectivities<D1, D2>();
     }
     return connectivities[D1][D2];
@@ -101,16 +97,6 @@ public:
     }
     else
     {
-      // if (connectivities[D1][D1 + 1].size() == 0)
-      // {
-      //   build_connectivities<D1, D1 + 1>();
-      // }
-      // bib::debug_message("One construction done");
-      // if (connectivities[D1 + 1][D1].size() == 0)
-      // {
-      //   build_connectivities<D1 + 1, D1>();
-      // }
-      // bib::debug_message("Two constructions done");
       auto &down_incidence = get_connectivities<D1+1,D1>();
       get_connectivities<D1,D1+1>();
       connectivities[D1][D1].resize(connectivities[D1][D1 + 1].size());
@@ -191,12 +177,10 @@ public:
       }
       if (connectivities[D2][0].size() == 0 )
       {
-        // connectivities[0][D2].resize(nb_entities_[0]);
         build_connectivities<D2, 0>();
       }
       if (connectivities[D1][0].size() == 0)
       {
-        // connectivities[D1][0].resize(nb_entities_[D1]);
         build_connectivities<D1, 0>();
       }
       bib::debug_message("here");
