@@ -51,14 +51,93 @@ public:
     }
     return connectivities[D1][D2][index];
   }
+  template <size_t D1, size_t D2>
+  std::vector<std::vector<size_t>> &get_connectivities()
+  {
+    if (connectivities[D1][D2].size() == 0)
+    {
+      // if (D1 == 0)
+      //   connectivities[D1][D2].resize(nb_entities_[D1]);
+      build_connectivities<D1, D2>();
+    }
+    return connectivities[D1][D2];
+  }
 
   /*!
-Build connectivities C[D1][D2]
-*/
+  Build adjacency relation for entities of dim D1
+  Two entities of dim d are adjacent if they share an entity of dim d-1
+  */
+  template<size_t D1>
+  void build_adjacency()
+  {
+    if constexpr (D1>0)
+    {
+      if (connectivities[D1][D1 - 1].size() == 0)
+      {
+        build_connectivities<D1, D1 - 1>();
+      }
+      bib::debug_message("One construction done");
+      if (connectivities[D1 - 1][D1].size() == 0)
+      {
+        build_connectivities<D1 - 1, D1>();
+      }
+      bib::debug_message("Two constructions done");
+      connectivities[D1][D1].resize(connectivities[D1][D1 - 1].size());
+
+      auto &adjacency = connectivities[D1][D1];
+      auto &up_incidence = connectivities[D1 - 1][D1];
+      size_t i = 0;
+      for (auto e : connectivities[D1][D1 - 1]) // e is the set of indices of entities of dim D1-1 in the current entity
+      {
+        for (auto sub : e)
+        {
+          adjacency[i].insert(adjacency[i].end(), up_incidence[sub].begin(), up_incidence[sub].end());
+        }
+        std::sort(adjacency[i].begin(), adjacency[i].end());
+        adjacency[i].erase(std::unique(adjacency[i].begin(), adjacency[i].end()), adjacency[i].end());
+        adjacency[i].erase(std::remove(adjacency[i].begin(), adjacency[i].end(), i), adjacency[i].end());
+        ++i;
+      }
+    }
+    else
+    {
+      // if (connectivities[D1][D1 + 1].size() == 0)
+      // {
+      //   build_connectivities<D1, D1 + 1>();
+      // }
+      // bib::debug_message("One construction done");
+      // if (connectivities[D1 + 1][D1].size() == 0)
+      // {
+      //   build_connectivities<D1 + 1, D1>();
+      // }
+      // bib::debug_message("Two constructions done");
+      auto &down_incidence = get_connectivities<D1+1,D1>();
+      get_connectivities<D1,D1+1>();
+      connectivities[D1][D1].resize(connectivities[D1][D1 + 1].size());
+      auto &adjacency = connectivities[D1][D1];
+
+      size_t i = 0;
+      for (auto e : connectivities[D1][D1 + 1]) // e is the set of indices of entities of dim D1+1 in the current entity
+      {
+        for (auto sub : e)
+        {
+          adjacency[i].insert(adjacency[i].end(), down_incidence[sub].begin(), down_incidence[sub].end());
+        }
+        std::sort(adjacency[i].begin(), adjacency[i].end());
+        adjacency[i].erase(std::unique(adjacency[i].begin(), adjacency[i].end()), adjacency[i].end());
+        adjacency[i].erase(std::remove(adjacency[i].begin(), adjacency[i].end(), i), adjacency[i].end());
+        ++i;
+      }
+    }
+  }
+  /*!
+  Build connectivities C[D1][D2]
+  */
   template <size_t D1, size_t D2>
   void build_connectivities()
   {
     bib::debug_message("start building %d %d", D1, D2);
+    if constexpr (D1==D2){build_adjacency<D1>(); return;}
     auto inverse_relation = [this](int d1, int d2)
     {
       if (this->nb_entities_[d1] != 0)
@@ -80,6 +159,7 @@ Build connectivities C[D1][D2]
     {
       bib::debug_message("In case we can inverse");
       inverse_relation(D1,D2);
+      return;
     }
     else // we use the relation C[D1][0] and C[0][D2]
     {
