@@ -136,21 +136,20 @@ int main()
 
   std::cout << std::endl;
   message("Test 2D connectivities hybrid");
-  // {
-  //   message("C2D_0_0");
-  //   mesh<2> M2;
-  //   gmesh<mesh<2>> G2;
-  //   G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d.msh");
-  //   test_topology_connectivities<2, 0, 0>(M2.topo, C2D_0_1);
-  //   exit(0);
-  // }
-  // {
-  //   message("C2D_0_1");
-  //   mesh<2> M2;
-  //   gmesh<mesh<2>> G2;
-  //   G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d.msh");
-  //   test_topology_connectivities<2, 0, 1>(M2.topo, C2D_0_1);
-  // }
+  {
+    message("C2D_0_0 hybrid");
+    mesh<2> M2;
+    gmesh<mesh<2>> G2;
+    G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d_hybrid.msh");
+    test_topology_connectivities<2, 0, 0>(M2.topo, C2D_0_0_hybrid);
+  }
+  {
+    message("C2D_0_1 hybrid");
+    mesh<2> M2;
+    gmesh<mesh<2>> G2;
+    G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d_hybrid.msh");
+    test_topology_connectivities<2, 0, 1>(M2.topo, C2D_0_1_hybrid);
+  }
   {
     message("C2D_0_2 hybrid");
     mesh<2> M2;
@@ -158,27 +157,27 @@ int main()
     G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d_hybrid.msh");
     test_topology_connectivities<2, 0, 2>(M2.topo, C2D_0_2_hybrid);
   }
-  // {
-  //   message("C2D_1_0");
-  //   mesh<2> M2;
-  //   gmesh<mesh<2>> G2;
-  //   G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d.msh");
-  //   test_topology_connectivities<2, 1, 0>(M2.topo, C2D_1_0);
-  // }
-  // {
-  //   message("C2D_1_1");
-  //   mesh<2> M2;
-  //   gmesh<mesh<2>> G2;
-  //   G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d.msh");
-  //   test_topology_connectivities<2, 1, 1>(M2.topo, C2D_1_1);
-  // }
-  // {
-  //   message("C2D_1_2");
-  //   mesh<2> M2;
-  //   gmesh<mesh<2>> G2;
-  //   G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d.msh");
-  //   test_topology_connectivities<2, 1, 2>(M2.topo, C2D_1_2);
-  // }
+  {
+    message("C2D_1_0 hybrid");
+    mesh<2> M2;
+    gmesh<mesh<2>> G2;
+    G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d_hybrid.msh");
+    test_topology_connectivities<2, 1, 0>(M2.topo, C2D_1_0_hybrid);
+  }
+  {
+    message("C2D_1_1 hybrid");
+    mesh<2> M2;
+    gmesh<mesh<2>> G2;
+    G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d_hybrid.msh");
+    test_topology_connectivities<2, 1, 1>(M2.topo, C2D_1_1_hybrid);
+  }
+  {
+    message("C2D_1_2 hybrid");
+    mesh<2> M2;
+    gmesh<mesh<2>> G2;
+    G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d_hybrid.msh");
+    test_topology_connectivities<2, 1, 2>(M2.topo, C2D_1_2_hybrid);
+  }
   {
     message("C2D_2_0 hybrid");
     mesh<2> M2;
@@ -186,20 +185,20 @@ int main()
     G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d_hybrid.msh");
     test_topology_connectivities<2, 2, 0>(M2.topo, C2D_2_0_hybrid);
   }
-  // {
-  //   message("C2D_2_1");
-  //   mesh<2> M2;
-  //   gmesh<mesh<2>> G2;
-  //   G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d.msh");
-  //   test_topology_connectivities<2, 2, 1>(M2.topo, C2D_2_1);
-  // }
-  // {
-  //   message("C2D_2_2");
-  //   mesh<2> M2;
-  //   gmesh<mesh<2>> G2;
-  //   G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d.msh");
-  //   test_topology_connectivities<2, 2, 2>(M2.topo, C2D_2_2);
-  // }
+  {
+    message("C2D_2_1 hybrid");
+    mesh<2> M2;
+    gmesh<mesh<2>> G2;
+    G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d_hybrid.msh");
+    test_topology_connectivities<2, 2, 1>(M2.topo, C2D_2_1_hybrid);
+  }
+  {
+    message("C2D_2_2 hybrid");
+    mesh<2> M2;
+    gmesh<mesh<2>> G2;
+    G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d_hybrid.msh");
+    test_topology_connectivities<2, 2, 2>(M2.topo, C2D_2_2_hybrid);
+  }
 
   message("Test 3D connectivities");
   {
