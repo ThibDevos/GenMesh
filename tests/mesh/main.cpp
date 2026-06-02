@@ -70,13 +70,13 @@ int main()
   std::cout << std::endl;
   message("Test 2D connectivities simplices");
 
-  // {
-  //   message("C2D_0_0");
-  //   mesh<2> M2;
-  //   gmesh<mesh<2>> G2;
-  //   G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d.msh");
-  //   test_topology_connectivities<2, 0, 0>(M2.topo, C2D_0_1);
-  // }
+  {
+    message("C2D_0_0");
+    mesh<2> M2;
+    gmesh<mesh<2>> G2;
+    G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d.msh");
+    test_topology_connectivities<2, 0, 0>(M2.topo, C2D_0_0);
+  }
   {
     message("C2D_0_1");
     mesh<2> M2;
@@ -185,7 +185,6 @@ int main()
     gmesh<mesh<2>> G2;
     G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d_hybrid.msh");
     test_topology_connectivities<2, 2, 0>(M2.topo, C2D_2_0_hybrid);
-    exit(0);
   }
   // {
   //   message("C2D_2_1");
