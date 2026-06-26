@@ -156,6 +156,9 @@ namespace shapes
       case 6:
         return ShapeType::prism;
         break;
+      case 8:
+        return ShapeType::hexahedron;
+        break;
       }
     }
     return ShapeType::count;
