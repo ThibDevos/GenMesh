@@ -16,12 +16,10 @@ void test_topology_connectivities(
     std::vector<std::vector<size_t>> const & expected)
 {
   topo.template get_connectivities<D1, D2>(0); //need to build the connectivities
-  std::cout<<expected.size() <<" "<< topo.nb_entities(D1)<<std::endl;
   assert(expected.size() == topo.nb_entities(D1));
 
   for (size_t i = 0; i < expected.size(); ++i)
   {
-    std::cout<<i<<std::endl;
     std::vector<size_t> const & result = topo.template get_connectivities<D1, D2>(i);
     assert(result.size()==expected[i].size());
     for(int j=0; j<result.size(); ++j)
@@ -38,7 +36,7 @@ void test_topology_connectivities(
 int main()
 {
   message("Test 1D connectivities");
-
+  
   {
     message("C1D_0_0");
     mesh<1> M1;
@@ -319,6 +317,124 @@ int main()
     gmesh<mesh<3>> G3;
     G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test2_3d.msh");
     test_topology_connectivities<3, 3, 3>(M3.topo, C3D_3_3);
+  }
+
+  std::cout<<std::endl;
+  message("Test 3D connectivities hybrid");
+  {
+    {
+      message("C3D_0_0 hybrid");
+      mesh<3> M3;
+      gmesh<mesh<3>> G3;
+      G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+      test_topology_connectivities<3, 0, 0>(M3.topo, C3D_0_0_hybrid);
+    }
+    {
+      message("C3D_0_1 hybrid");
+      mesh<3> M3;
+      gmesh<mesh<3>> G3;
+      G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+      test_topology_connectivities<3, 0, 1>(M3.topo, C3D_0_1_hybrid);
+    }
+    {
+      message("C3D_0_2 hybrid");
+      mesh<3> M3;
+      gmesh<mesh<3>> G3;
+      G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+      test_topology_connectivities<3, 0, 2>(M3.topo, C3D_0_2_hybrid);
+    }
+    {
+      message("C3D_0_3 hybrid");
+      mesh<3> M3;
+      gmesh<mesh<3>> G3;
+      G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+      test_topology_connectivities<3, 0, 3>(M3.topo, C3D_0_3_hybrid);
+    }
+    {
+      message("C3D_1_0 hybrid");
+      mesh<3> M3;
+      gmesh<mesh<3>> G3;
+      G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+      test_topology_connectivities<3, 1, 0>(M3.topo, C3D_1_0_hybrid);
+    }
+    {
+      message("C3D_1_1 hybrid");
+      mesh<3> M3;
+      gmesh<mesh<3>> G3;
+      G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+      test_topology_connectivities<3, 1, 1>(M3.topo, C3D_1_1_hybrid);
+    }
+    {
+      message("C3D_1_2 hybrid");
+      mesh<3> M3;
+      gmesh<mesh<3>> G3;
+      G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+      test_topology_connectivities<3, 1, 2>(M3.topo, C3D_1_2_hybrid);
+    }
+    {
+      message("C3D_1_3 hybrid");
+      mesh<3> M3;
+      gmesh<mesh<3>> G3;
+      G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+      test_topology_connectivities<3, 1, 3>(M3.topo, C3D_1_3_hybrid);
+    }
+    {
+      message("C3D_2_0 hybrid");
+      mesh<3> M3;
+      gmesh<mesh<3>> G3;
+      G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+      test_topology_connectivities<3, 2, 0>(M3.topo, C3D_2_0_hybrid);
+    }
+    {
+      message("C3D_2_1 hybrid");
+      mesh<3> M3;
+      gmesh<mesh<3>> G3;
+      G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+      test_topology_connectivities<3, 2, 1>(M3.topo, C3D_2_1_hybrid);
+    }
+    {
+      message("C3D_2_2 hybrid");
+      mesh<3> M3;
+      gmesh<mesh<3>> G3;
+      G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+      test_topology_connectivities<3, 2, 2>(M3.topo, C3D_2_2_hybrid);
+    }
+    {
+      message("C3D_2_3 hybrid");
+      mesh<3> M3;
+      gmesh<mesh<3>> G3;
+      G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+      test_topology_connectivities<3, 2, 3>(M3.topo, C3D_2_3_hybrid);
+      exit(0);
+    }
+    {
+      message("C3D_3_0 hybrid");
+      mesh<3> M3;
+      gmesh<mesh<3>> G3;
+      G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+      test_topology_connectivities<3, 3, 0>(M3.topo, C3D_3_0_hybrid);
+    }
+    {
+      message("C3D_3_1 hybrid");
+      mesh<3> M3;
+      gmesh<mesh<3>> G3;
+      G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+      test_topology_connectivities<3, 3, 1>(M3.topo, C3D_3_1_hybrid);
+    }
+    {
+      message("C3D_3_2 hybrid");
+      mesh<3> M3;
+      gmesh<mesh<3>> G3;
+      G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+      test_topology_connectivities<3, 3, 2>(M3.topo, C3D_3_2_hybrid);
+    }
+    {
+      message("C3D_3_3 hybrid");
+      mesh<3> M3;
+      gmesh<mesh<3>> G3;
+      G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+      test_topology_connectivities<3, 3, 3>(M3.topo, C3D_3_3_hybrid);
+    }
   }
   return 0;
 }
