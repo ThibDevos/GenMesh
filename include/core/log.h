@@ -28,6 +28,15 @@ void error(T msg)
   throw std::runtime_error(msg);
 }
 
+template<typename... Args>
+void debug_message(const char* msg, Args ... args)
+{
+  std::cout<<"[DEBUG] ";
+  printf(msg, args...);
+  std::cout<<std::endl;
+}
+
+
 enum log_level {DEBUG, INFO, WARNING, ERROR};
 class logger
 {
