@@ -158,105 +158,107 @@ class entity_view
     double measure()
     {
       if constexpr (D == 0)
-        return 0. if constexpr (D == 1) return this->diameter();
-      shapes::Shape_type shape = this->shape_type();
+        return 0.;
+      if constexpr (D == 1)
+        return this->diameter();
+      shapes::ShapeType shape = this->shape_type();
       if constexpr (D == 2)
       {
         auto coord = this->coordinates();
-        switch (shape) 
+        switch (shape)
         {
-        case shapes::ShapeType::triangle: 
-        {
-          double third_a = 0;
-          double third_b = 0;
-          if constexpr(Mesh::dim_geo==3)
+          case shapes::ShapeType::triangle:
           {
-            third_a =  coord[0][2] - coord[1][2];
-            third_b =  coord[0][2] - coord[2][2];
+            double third_a = 0;
+            double third_b = 0;
+            if constexpr (Mesh::dim_geo == 3)
+            {
+              third_a = coord[0][2] - coord[1][2];
+              third_b = coord[0][2] - coord[2][2];
+            }
+            std::array<double, 3> a{coord[0][0] - coord[1][0], coord[0][1] - coord[1][1], third_a};
+            std::array<double, 3> b{coord[0][0] - coord[2][0], coord[0][1] - coord[2][1], third_b};
+            double A = 0;
+            for (int i = 0; i < 3; ++i)
+            {
+              A += std::pow(a[(i + 1) % 3] * b[(i + 2) % 3] - a[(i + 2) % 3] * b[(i + 1) % 3], 2);
+            }
+            return 0.5 * std::sqrt(A);
           }
-          std::array<double, 3> a{coord[0][0] - coord[1][0], coord[0][1] - coord[1][1], third_a};
-          std::array<double, 3> b{coord[0][0] - coord[2][0], coord[0][1] - coord[2][1], third_b};
-          double A = 0;
-          for (int i = 0; i < 3; ++i)
-          {
-            A += std::pow(a[(i + 1) % 3] * b[(i + 2) % 3] - a[(i + 2) % 3] * b[(i + 1) % 3], 2);
-          }
-          return 0.5 * std::sqrt(A);
-        }
-        break;
-        case shapes::ShapeType::quadrangle: //XXX the quadrangle must be convex
-        {
-          double third_a = 0;
-          double third_b = 0;
-          double third_c = 0;
-          if constexpr(Mesh::dim_geo==3)
-          {
-            third_a =  coord[1][2] - coord[0][2];
-            third_b =  coord[1][2] - coord[2][2];
-            third_c =  coord[1][2] - coord[3][2];
-          }
-          std::array<double, 3> a{coord[1][0] - coord[0][0], coord[1][1] - coord[0][1], third_a};
-          std::array<double, 3> b{coord[1][0] - coord[2][0], coord[1][1] - coord[2][1], third_b};
-          std::array<double, 3> c{coord[1][0] - coord[3][0], coord[1][1] - coord[3][1], third_c};
-          double A = 0;
-          double B = 0;
-          for (int i = 0; i < 3; ++i)
-          {
-            A += std::pow(a[(i + 1) % 3] * b[(i + 2) % 3] - a[(i + 2) % 3] * b[(i + 1) % 3], 2);
-            B += std::pow(b[(i + 1) % 3] * c[(i + 2) % 3] - b[(i + 2) % 3] * c[(i + 1) % 3], 2);
-          }
-          return 0.5 * (std::sqrt(A) + std::sqrt(B));
-        }
-        default:
-          bib::error("Shape not detected");
           break;
+          case shapes::ShapeType::quadrangle: // XXX the quadrangle must be convex
+          {
+            double third_a = 0;
+            double third_b = 0;
+            double third_c = 0;
+            if constexpr (Mesh::dim_geo == 3)
+            {
+              third_a = coord[1][2] - coord[0][2];
+              third_b = coord[1][2] - coord[2][2];
+              third_c = coord[1][2] - coord[3][2];
+            }
+            std::array<double, 3> a{coord[1][0] - coord[0][0], coord[1][1] - coord[0][1], third_a};
+            std::array<double, 3> b{coord[1][0] - coord[2][0], coord[1][1] - coord[2][1], third_b};
+            std::array<double, 3> c{coord[1][0] - coord[3][0], coord[1][1] - coord[3][1], third_c};
+            double A = 0;
+            double B = 0;
+            for (int i = 0; i < 3; ++i)
+            {
+              A += std::pow(a[(i + 1) % 3] * b[(i + 2) % 3] - a[(i + 2) % 3] * b[(i + 1) % 3], 2);
+              B += std::pow(b[(i + 1) % 3] * c[(i + 2) % 3] - b[(i + 2) % 3] * c[(i + 1) % 3], 2);
+            }
+            return 0.5 * (std::sqrt(A) + std::sqrt(B));
+          }
+          default:
+            bib::error("Shape not detected");
+            break;
         }
       }
-      if constexpr (D==3)
+      if constexpr (D == 3)
       {
 
         auto coord = this->coordinates();
-        //use the tetraedra decomposition
+        // use the tetraedra decomposition
         auto volume_from_tet = [&coord](auto sub_tet)
         {
           double V = 0.;
-           for(auto s : sub_tet)
+          for (auto s : sub_tet)
+          {
+            std::array<double, 3> a{coord[s[0]][0] - coord[s[3]][0], coord[s[0]][1] - coord[s[3]][1], coord[s[0]][2] - coord[s[3]][2]};
+            std::array<double, 3> b{coord[s[1]][0] - coord[s[3]][0], coord[s[1]][1] - coord[s[3]][1], coord[s[1]][2] - coord[s[3]][2]};
+            std::array<double, 3> c{coord[s[2]][0] - coord[s[3]][0], coord[s[2]][1] - coord[s[3]][1], coord[s[2]][2] - coord[s[3]][2]};
+            double V_t = 0;
+            for (int i = 0; i < 3; ++i)
             {
-              std::array<double, 3> a{coord[s[0]][0] - coord[s[3]][0], coord[s[0]][1] - coord[s[3]][1], coord[s[0]][2] - coord[s[3]][2]};
-              std::array<double, 3> b{coord[s[1]][0] - coord[s[3]][0], coord[s[1]][1] - coord[s[3]][1], coord[s[1]][2] - coord[s[3]][2]};
-              std::array<double, 3> c{coord[s[2]][0] - coord[s[3]][0], coord[s[2]][1] - coord[s[3]][1], coord[s[2]][2] - coord[s[3]][2]};
-              double V_t = 0;
-              for (int i = 0; i < 3; ++i)
-              {
-                V_t += a[i] * (b[(i + 1) % 3] * c[(i + 2) % 3] - b[(i + 2) % 3] * c[(i + 1) % 3]);
-              }
-              V += std::fabs(V_t);
+              V_t += a[i] * (b[(i + 1) % 3] * c[(i + 2) % 3] - b[(i + 2) % 3] * c[(i + 1) % 3]);
             }
-            return V/6.;
-        }
+            V += std::fabs(V_t);
+          }
+          return V / 6.;
+        };
 
         switch (shape)
         {
-          case shapes::ShapeType::tetrahedron
+          case shapes::ShapeType::tetrahedron: 
           {
-            std::array<std::array<size_t, 4> 1> sub_tet = {{0,1,2,3}};
+            std::array < std::array < size_t, 4 >, 1 > sub_tet = {{0, 1, 2, 3}};
             return volume_from_tet(sub_tet);
           }
-          case shapes::ShapeType::hexahedron
+          case shapes::ShapeType::hexahedron: 
           {
-            std::array<std::array<size_t, 4>, 5> sub_tet {{0,1,3,4}, {1,4,5,6}, {1,3,6,7}, {3,4,6,7}, {1,3,4,6}}; 
+            std::array<std::array<size_t, 4>, 5> sub_tet{{0, 1, 3, 4}, {1, 4, 5, 6}, {1, 3, 6, 7}, {3, 4, 6, 7}, {1, 3, 4, 6}};
             return volume_from_tet(sub_tet);
-          }
-          case shapes::ShapeType::prism
+          } 
+          case shapes::ShapeType::prism: 
           {
-            std::array<std::array<size_t, 4>, 3> sub_tet {{0,1,2,3}, {1,2,3,4}, {2,3,4,5}}; 
+            std::array<std::array<size_t, 4>, 3> sub_tet{{0, 1, 2, 3}, {1, 2, 3, 4}, {2, 3, 4, 5}};
             return volume_from_tet(sub_tet);
-          }
-          case shapes::ShapeType::pyramid
+          } 
+          case shapes::ShapeType::pyramid: 
           {
-            std::array<std::array<size_t, 4>, 2> sub_tet {{0,1,2,4}, {0,2,3,4}}; 
+            std::array<std::array<size_t, 4>, 2> sub_tet{{0, 1, 2, 4}, {0, 2, 3, 4}};
             return volume_from_tet(sub_tet);
-          }
+          } 
           default:
             bib::error("Shape not detected");
             break;
