@@ -77,17 +77,9 @@ class entity_view
     template<size_t d>
     entity_range<Mesh,d> entities()
     {
-      if constexpr(D==d)
-      {
-        std::cout<<"Return adjacency  TODO\n";
-        std::vector<size_t> temp;
-        return entity_range<Mesh,d>(M, &temp);
-      }
-      else
-      {
+
         std::vector<size_t> & local_indices= M->topo.template get_connectivities<D,d>(index_);
         return entity_range<Mesh,d>(M,&local_indices);
-      }
     }
     auto cells()     { return entities<Mesh::dim_topo>();   }
     auto facets()    { return entities<Mesh::dim_topo-1>(); }
@@ -98,39 +90,58 @@ class entity_view
 
     size_t nb_vertices()
     {
+      if constexpr(D==0) return 1;
       return M->topo.template get_connectivities<D,0>(index_).size();
     }
 
     auto coordinates()
     {
-      if constexpr (D==0)
+      std::vector<std::array<double, Mesh::dim_geo>> coords(nb_vertices());
+      if constexpr (D == 0)
       {
-        std::array<double, Mesh::dim_geo> coords;
-        for(int i=0; i<Mesh::dim_geo; ++i){coords[i] = M->geo.coords[index_][i];}
-        return coords;
+        for(int i=0; i < Mesh::dim_geo; ++i)
+        {
+          coords[0][i] = M->geo.coords[this->index_][i];
+        }
       }
       else
       {
-        std::vector<std::array<double, Mesh::dim_geo>> coords(nb_vertices());
-        int j=0;
-        for(auto && vj : this->vertices())
+        int j = 0;
+        for (auto &&vj : this->vertices())
         {
-          for(int i=0; i<Mesh::dim_geo; ++i){coords[j][i] = M->geo.coords[vj.index()][i];}
+          for (int i = 0; i < Mesh::dim_geo; ++i)
+          {
+            coords[j][i] = M->geo.coords[vj.index()][i];
+          }
           ++j;
         }
-        return coords;
       }
+      return coords;
     }
 
     std::array<double, Mesh::dim_geo> barycenter()
     {
-      std::array<double, Mesh::dim_geo> bary;
-      double inv_dim = 1./nb_vertices();
-      for(auto && vj : this->vertices())
+      std::array<double, Mesh::dim_geo> bary{0};
+      if constexpr (D == 0)
       {
-        for(int i=0; i<Mesh::dim_geo; ++i){bary[i] += M->geo.coords[vj.index()][i]*inv_dim;}
+        for (int i = 0; i < Mesh::dim_geo; ++i)
+        {
+          bary[i] = M->geo.coords[this->index_][i];
+        }
+        return bary;
       }
-      return bary;
+      else
+      {
+        double inv_dim = 1. / nb_vertices();
+        for (auto vj : this->vertices())
+        {
+          for (int i = 0; i < Mesh::dim_geo; ++i)
+          {
+            bary[i] += M->geo.coords[vj.index()][i] * inv_dim;
+          }
+        }
+        return bary;
+      }
     }
 
     double diameter()
@@ -144,6 +155,7 @@ class entity_view
       {
         for(int j=i+1; j<nb_vert; ++j)
         {
+          dist=0;
           for(int k=0; k<Mesh::dim_geo; ++k){dist+=std::pow(coord[i][k]-coord[j][k], 2);}
           d=std::max(d,dist);
         }
@@ -246,17 +258,17 @@ class entity_view
           }
           case shapes::ShapeType::hexahedron: 
           {
-            std::array<std::array<size_t, 4>, 5> sub_tet{{0, 1, 3, 4}, {1, 4, 5, 6}, {1, 3, 6, 7}, {3, 4, 6, 7}, {1, 3, 4, 6}};
+            std::array<std::array<size_t, 4>, 5> sub_tet{{{0, 1, 3, 4}, {1, 4, 5, 6}, {1, 3, 6, 7}, {3, 4, 6, 7}, {1, 3, 4, 6}}};
             return volume_from_tet(sub_tet);
           } 
           case shapes::ShapeType::prism: 
           {
-            std::array<std::array<size_t, 4>, 3> sub_tet{{0, 1, 2, 3}, {1, 2, 3, 4}, {2, 3, 4, 5}};
+            std::array<std::array<size_t, 4>, 3> sub_tet{{{0, 1, 2, 3}, {1, 2, 3, 4}, {2, 3, 4, 5}}};
             return volume_from_tet(sub_tet);
           } 
           case shapes::ShapeType::pyramid: 
           {
-            std::array<std::array<size_t, 4>, 2> sub_tet{{0, 1, 2, 4}, {0, 2, 3, 4}};
+            std::array<std::array<size_t, 4>, 2> sub_tet{{{0, 1, 2, 4}, {0, 2, 3, 4}}};
             return volume_from_tet(sub_tet);
           } 
           default:
@@ -264,6 +276,7 @@ class entity_view
             break;
         }
       }
+      return 0;
     }
 
   private:

@@ -7,6 +7,7 @@
 #include <core/log.h>
 #include <connectivities.h>
 #include <connectivities_hybrid.h>
+#include <entity_view_expected_values.h>
 
 using namespace bib;
 
@@ -22,11 +23,6 @@ void test_topology_connectivities(
   {
     std::vector<size_t> const & result = topo.template get_connectivities<D1, D2>(i);
     assert(result.size()==expected[i].size());
-    for(int j=0; j<result.size(); ++j)
-    {
-      std::cout<<result[j]<<" "<<expected[i][j]<<std::endl;
-    }
-    std::cout<<std::endl;
     assert(result == expected[i]);
   }
   message("finished");
@@ -405,7 +401,6 @@ int main()
       gmesh<mesh<3>> G3;
       G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
       test_topology_connectivities<3, 2, 3>(M3.topo, C3D_2_3_hybrid);
-      exit(0);
     }
     {
       message("C3D_3_0 hybrid");
@@ -436,5 +431,71 @@ int main()
       test_topology_connectivities<3, 3, 3>(M3.topo, C3D_3_3_hybrid);
     }
   }
+  std::cout<<std::endl;
+  message("Test entity view");
+  { 
+    message("expected_1d_vertices");
+    mesh<1> M1;
+    gmesh<mesh<1>> G1;
+    G1.read_gmsh(M1, std::string(TEST_FILES_DIR) + "/test_1d.msh");
+    test_entity_view<1, 5, 0>(M1, expected_1d_vertices);
+  }
+  { 
+    message("expected_1d_edges");
+    mesh<1> M1;
+    gmesh<mesh<1>> G1;
+    G1.read_gmsh(M1, std::string(TEST_FILES_DIR) + "/test_1d.msh");
+    test_entity_view<1, 4, 1>(M1, expected_1d_edges);
+  }
+  { 
+    message("expected_2d_hybrid_vertices");
+    mesh<2> M2;
+    gmesh<mesh<2>> G2;
+    G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d_hybrid.msh");
+    test_entity_view<2, 10, 0>(M2, expected_2d_hybrid_vertices);
+  }
+  { 
+    message("expected_2d_hybrid_edges");
+    mesh<2> M2;
+    gmesh<mesh<2>> G2;
+    G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d_hybrid.msh");
+    test_entity_view<2, 18, 1>(M2, expected_2d_hybrid_edges);
+  }
+  { 
+    message("expected_2d_hybrid_cells");
+    mesh<2> M2;
+    gmesh<mesh<2>> G2;
+    G2.read_gmsh(M2, std::string(TEST_FILES_DIR) + "/test_2d_hybrid.msh");
+    test_entity_view<2, 9, 2>(M2, expected_2d_hybrid_cells);
+  }
+  { 
+    message("expected_3d_hybrid_vertices");
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+    test_entity_view<3, 15, 0>(M3, expected_3d_hybrid_vertices);
+  }
+  { 
+    message("expected_3d_hybrid_edges");
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+    test_entity_view<3, 30, 1>(M3, expected_3d_hybrid_edges);
+  }
+  { 
+    message("expected_3d_hybrid_faces");
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+    test_entity_view<3, 21, 2>(M3, expected_3d_hybrid_faces);
+  }
+  { 
+    message("expected_3d_hybrid_cells");
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
+    test_entity_view<3, 5, 3>(M3, expected_3d_hybrid_cells);
+  }
+  
   return 0;
 }
