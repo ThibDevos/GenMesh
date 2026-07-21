@@ -89,6 +89,7 @@ class mesh
     mesh_range<mesh<G,D>, d> entities()
     {
       static_assert(d<=D);
+      if (topo.connectivities[d][0].size()==0) topo.template build_connectivities<d,0>();
       return mesh_range<mesh<G, D>, d>(this, 0, topo.nb_entities(d));
     }
 
