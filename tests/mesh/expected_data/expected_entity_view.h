@@ -1,5 +1,5 @@
-#ifndef TESTS_MESH_ENTITY_VIEW_EXPECTED_VALUES
-#define TESTS_MESH_ENTITY_VIEW_EXPECTED_VALUES
+#ifndef TESTS_MESH_EXPECTED_ENTITY_VIEW
+#define TESTS_MESH_EXPECTED_ENTITY_VIEW
 
 #include <array>
 #include <cassert>
@@ -161,45 +161,6 @@ inline const std::array<expected_entity_view_data<3>, 5> expected_3d_hybrid_cell
     {5, {{{1.0, 0.0, 0.0}}, {{1.0, 0.0, 1.0}}, {{1.0, 1.0, 1.0}}, {{1.0, 1.0, 0.0}}, {{2.0, 0.5, 0.5}}}, {{1.2, 0.5, 0.5}}, 1.4142135623730951, 0.33333333333333331}
 }};
 
-inline bool nearly_equal(double lhs, double rhs)
-{
-  double scale = std::max({1.0, std::fabs(lhs), std::fabs(rhs)});
-  return std::fabs(lhs - rhs) <= 1e-10 * scale;
-}
 
-template<size_t G, size_t N, size_t D>
-void test_entity_view(mesh<G> M, std::array<expected_entity_view_data<G>,N> expected)
-{
-  auto entities = M.template entities<D>();
-  size_t idx = 0;
-  for (auto entity : entities)
-  {
-    assert(idx < expected.size());
-    auto const & expected_value = expected[idx];
-    
-    assert(entity.nb_vertices() == expected_value.nb_vertices);
-
-    auto coords = entity.coordinates();
-    assert(coords.size() == expected_value.coordinates.size());
-    for (size_t i = 0; i < coords.size(); ++i)
-    {
-      for (size_t j = 0; j < G; ++j)
-      {
-        assert(nearly_equal(coords[i][j], expected_value.coordinates[i][j]));
-      }
-    }
-    auto bary = entity.barycenter();
-    for (size_t j = 0; j < G; ++j)
-    {
-      assert(nearly_equal(bary[j], expected_value.barycenter[j]));
-    }
-
-    assert(nearly_equal(entity.diameter(), expected_value.diameter));
-    assert(nearly_equal(entity.measure(), expected_value.measure));
-    ++idx;
-  }
-
-  assert(idx == expected.size());
-}
 
 #endif
