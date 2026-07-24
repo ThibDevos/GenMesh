@@ -72,12 +72,10 @@ public:
       {
         build_connectivities<D1, D1 - 1>();
       }
-      bib::debug_message("One construction done");
       if (connectivities[D1 - 1][D1].size() == 0)
       {
         build_connectivities<D1 - 1, D1>();
       }
-      bib::debug_message("Two constructions done");
       connectivities[D1][D1].resize(connectivities[D1][D1 - 1].size());
 
       auto &adjacency = connectivities[D1][D1];
@@ -122,7 +120,6 @@ public:
   template <size_t D1, size_t D2>
   void build_connectivities()
   {
-    bib::debug_message("start building %d %d", D1, D2);
     if constexpr (D1==D2){build_adjacency<D1>(); return;}
     auto inverse_relation = [this](int d1, int d2)
     {
@@ -143,16 +140,13 @@ public:
     
     if (connectivities[D2][D1].size() != 0) // if C[D2][D1] is already built, we can build C[D1][D2] by inverting the relation table C[D2][D1]
     {
-      bib::debug_message("In case we can inverse");
       inverse_relation(D1,D2);
       return;
     }
     else // we use the relation C[D1][0] and C[0][D2]
     {
-      bib::debug_message("In case we can't inverse");
       if constexpr (D2 == 0) // relation d-0 are built from cell-vertex relations and vertex-entity relations defined in shape.h
       {
-        bib::debug_message("case D2==0");
         if (D1 == 1)
         {
           build_edges();
@@ -165,7 +159,6 @@ public:
       }
       if constexpr (D1 == 0)
       {
-        bib::debug_message("case D1==0");
         build_connectivities<D2, D1>();
         return;
       }
@@ -183,7 +176,6 @@ public:
       {
         build_connectivities<D1, 0>();
       }
-      bib::debug_message("here");
       connectivities[D1][D2].resize(nb_entities_[D1]);
 
       // assuming we have C[D2][0]
@@ -257,14 +249,12 @@ public:
         }
       }
 
-      bib::debug_message("finished building");
     }
 
   }
 
   void build_edges()
   {
-    std::cout << "build edges" << std::endl;
     std::vector<std::vector<size_t>> &edge_v = connectivities[1][0];
     edge_v.reserve(3 * nb_entities_[D]);
     for (int i = 0; i < nb_entities_[D]; ++i)
@@ -287,7 +277,6 @@ public:
 
   void build_faces()
   {
-    bib::debug_message("build faces");
     assert(D > 2);
 
     auto normalize_indices = [](std::vector<size_t> indices)
