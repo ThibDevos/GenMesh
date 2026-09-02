@@ -1,269 +1,78 @@
 #include <mesh/mesh.h>
 #include <io.h>
 
-// 2-----3
-// |    /|
-// |   / |
-// |  /  |
-// | /   |
-// 0-----1
+#include <iomanip>
+#include <iostream>
+#include <string>
+
+template <int G, int D>
+void print_mesh_summary(const std::string &label, mesh<G, D> &M)
+{
+  std::cout << "\n== " << label << " ==\n";
+  std::cout << "vertices: " << M.topo.nb_vertices() << "\n";
+  std::cout << "cells: " << M.topo.nb_cells() << "\n";
+
+  std::cout << "Vertex coordinates:\n";
+  for (auto v : M.vertices())
+  {
+    auto coord = v.coordinates();
+    std::cout << "  v" << v.index() << " -> (";
+    for (size_t i = 0; i < coord[0].size(); ++i)
+    {
+      if (i != 0)
+        std::cout << ", ";
+      std::cout << std::fixed << std::setprecision(3) << coord[0][i];
+    }
+    std::cout << ")\n";
+  }
+
+  std::cout << "Cell measures:\n";
+  for (auto c : M.cells())
+  {
+    std::cout << "  cell " << c.index() << " -> measure = " << c.measure() << "\n";
+  }
+
+  if constexpr (D >= 2)
+  {
+    std::cout << "Adjacency example (edge -> incident cells):\n";
+    for (auto e : M.edges())
+    {
+      std::cout << "  edge " << e.index() << " -> cells: ";
+      bool first = true;
+      for (auto c : e.cells())
+      {
+        if (!first)
+          std::cout << ", ";
+        std::cout << c.index();
+        first = false;
+      }
+      std::cout << "\n";
+    }
+  }
+}
+
 int main()
 {
-  mesh<1> M1;
-  gmesh<mesh<1>> G;
-  G.read_gmsh(M1,"test_files/test_1d.msh");
-  mesh<2> M2;
-  gmesh<mesh<2>> G2;
-  G2.read_gmsh(M2,"test_files/test_2d.msh");
-  mesh<3> M3;
-  gmesh<mesh<3>> G3;
-  G3.read_gmsh(M3,"test_files/test2_3d.msh");
-
-
-
-  // std::cout<<std::endl;
-  // std::cout<<"========1D========\n";
-
-  // std::cout<<M1.topo.nb_vertices()<<" "<<M1.topo.nb_edges()<<" "<<M1.topo.nb_facets()<<" "<<M1.topo.nb_cells()<<"\n";
-  // // for(auto c : M1.facets())
-  // // {
-  //   // for(auto v : c.vertices())
-  //   //   {
-  //   //     std::cout<<v.index()<<" ";
-  //   //   }
-  //   //   std::cout<<"\n";
-  // // }
-
-  // std::cout<<std::endl;
-  // std::cout<<"========2D========\n";
-
-  // std::cout<<M2.topo.nb_vertices()<<" "<<M2.topo.nb_edges()<<" "<<M2.topo.nb_facets()<<" "<<M2.topo.nb_cells()<<"\n";
-  // std::cout<<"vertices :"<<M2.topo.nb_vertices()<<" \n";
-  // for(auto c : M2.cells())
-  // {
-  //   for(auto v : c.vertices())
-  //     {
-  //       std::cout<<v.index()<<" ";
-  //     }
-  //     std::cout<<"\n";
-  // }
-  // std::cout<<"inverse"<<std::endl;
-  // for(auto && v : M2.vertices())
-  // {
-  //   for(auto && c : v.cells())
-  //   {
-  //     std::cout<<c.index()<<" ";
-  //   }
-  //   std::cout<<"\n";
-  // }
-  // std::cout<<"build edges"<<std::endl;
-  // M2.topo.build_edges();
-  // auto edge_v  = M2.topo.connectivities[1][0];
-  // for(auto e : edge_v)
-  // {
-  //   for(auto v : e)
-  //   {
-  //     std::cout<<v<<" ";
-  //   }
-  //   std::cout<<std::endl;
-  // }
-  // std::cout<<"-----------------------"<<std::endl;
-  // for(auto && e : M2.edges())
-  // {
-  //     for(auto v : e.vertices())
-  //     {
-  //       std::cout<<v.index()<<" ";
-  //     }
-  //     std::cout<<"\n";
-  // }
-  // std::cout<<"fin"<<std::endl;
-  M3.topo.build_adjacency<1>();
-  auto & ad = M3.topo.connectivities[1][1];
-  for(int i=0; i<ad.size(); ++i)
   {
-    for(int j=0; j<ad[i].size(); ++j)
-    {
-      std::cout<<ad[i][j]<<" ";
-    }
-    std::cout<<std::endl;
+    mesh<1> M1;
+    gmesh<mesh<1>> G;
+    G.read_gmsh(M1, "test_files/test_1d.msh");
+    print_mesh_summary("1D mesh", M1);
   }
 
-  // std::cout<<std::endl;
-  // std::cout<<"========3D========\n";
-
-  // std::cout<<"vertices :"<<M3.topo.nb_vertices()<<" \n";
-  // std::cout<<"build edges"<<std::endl;
-  // M3.topo.build_edges();
-  // auto edge_v3  = M3.topo.connectivities[1][0];
-  // for(auto e : edge_v3)
-  // {
-  //   for(auto v : e)
-  //   {
-  //     std::cout<<v<<" ";
-  //   }
-  //   std::cout<<std::endl;
-  // }
-  // std::cout<<"-----------------------"<<std::endl;
-  // for(auto && e : M3.edges())
-  // {
-  //     for(auto v : e.vertices())
-  //     {
-  //       std::cout<<v.index()<<" ";
-  //     }
-  //     std::cout<<"\n";
-  // }
-  // std::cout<<"fin"<<std::endl;
-
-
-  // std::cout<<std::endl;
-  // std::cout<<"build facets"<<std::endl;
-  // M3.topo.build_faces();
-  // auto face_v  = M3.topo.connectivities[2][0];
-  // for(auto f : face_v)
-  // {
-  //   for(auto v : f)
-  //   {
-  //     std::cout<<v<<" ";
-  //   }
-  //   std::cout<<std::endl;
-  // }
-  // std::cout<<"-----------------------"<<std::endl;
-  // for(auto && f : M3.facets())
-  // {
-  //     for(auto v : f.vertices())
-  //     {
-  //       std::cout<<v.index()<<" ";
-  //     }
-  //     std::cout<<"\n";
-  // }
-  // std::cout<<"fin"<<std::endl;
-
-  // for(auto c : M3.facets())
-  // {
-    // for(auto v : c.vertices())
-    //   {
-    //     std::cout<<v.index()<<" ";
-    //   }
-    //   std::cout<<"\n";
-  // }
-
-  // for(auto c : M.cells())
-  // {
-  //   for(auto v : c.vertices())
-  //     {
-  //       std::cout<<v.index()<<" ";
-  //     }
-  //     std::cout<<"\n";
-  // }
-  // std::cout<<"inverse"<<std::endl;
-  // for(auto && v : M2.vertices())
-  // {
-  //   for(auto && c : v.cells())
-  //   {
-  //     std::cout<<c.index()<<" ";
-  //   }
-  //   std::cout<<"\n";
-  // }
-  // std::cout<<"build edges"<<std::endl;
-  // M2.topo.build_edges();
-  // auto edge_v  = M2.topo.connectivities[1][0];
-  // for(auto e : edge_v)
-  // {
-  //   for(auto v : e)
-  //   {
-  //     std::cout<<v<<" ";
-  //   }
-  //   std::cout<<std::endl;
-  // }
-  // std::cout<<"-----------------------"<<std::endl;
-  // for(auto && e : M2.edges())
-  // {
-  //     for(auto v : e.vertices())
-  //     {
-  //       std::cout<<v.index()<<" ";
-  //     }
-  //     std::cout<<"\n";
-  // }
-  // std::cout<<"fin"<<std::endl;
-
-
-  // std::cout<<std::endl;
-  // std::cout<<"========3D========\n";
-
-  // std::cout<<"vertices :"<<M3.topo.nb_vertices()<<" \n";
-  // std::cout<<"build edges"<<std::endl;
-  // M3.topo.build_edges();
-  // auto edge_v3  = M3.topo.connectivities[1][0];
-  // for(auto e : edge_v3)
-  // {
-  //   for(auto v : e)
-  //   {
-  //     std::cout<<v<<" ";
-  //   }
-  //   std::cout<<std::endl;
-  // }
-  // std::cout<<"-----------------------"<<std::endl;
-  // for(auto && e : M3.edges())
-  // {
-  //     for(auto v : e.vertices())
-  //     {
-  //       std::cout<<v.index()<<" ";
-  //     }
-  //     std::cout<<"\n";
-  // }
-  // std::cout<<"fin"<<std::endl;
-
-
-  // std::cout<<std::endl;
-  // std::cout<<"build facets"<<std::endl;
-  // M3.topo.build_faces();
-  // auto face_v  = M3.topo.connectivities[2][0];
-  // for(auto f : face_v)
-  // {
-  //   for(auto v : f)
-  //   {
-  //     std::cout<<v<<" ";
-  //   }
-  //   std::cout<<std::endl;
-  // }
-  // std::cout<<"-----------------------"<<std::endl;
-  // for(auto && f : M3.facets())
-  // {
-  //     for(auto v : f.vertices())
-  //     {
-  //       std::cout<<v.index()<<" ";
-  //     }
-  //     std::cout<<"\n";
-  // }
-  // std::cout<<"fin"<<std::endl;
-
-  // // for(auto c : M3.facets())
-  // // {
-  //   // for(auto v : c.vertices()) 
-  //   //   {
-  //   //     std::cout<<v.index()<<" ";
-  //   //   }
-  //   //   std::cout<<"\n";
-  // // }
-
-  // // for(auto c : M.cells())
-  // // {
-  // //   for(auto v : c.vertices())
-  // //   {
-  // //     std::cout<<v.index()<<" ";
-  // //   }
-  // //   std::cout<<std::endl;
-  // // }
-
-
-  for(auto c : M1.cells())
   {
-    std::cout<<c.coordinates()[0][0]<<" "<<c.coordinates()[1][0]<<" "<<c.diameter()<<std::endl;
+    mesh<2> M2;
+    gmesh<mesh<2>> G2;
+    G2.read_gmsh(M2, "test_files/test_2d_hybrid.msh");
+    print_mesh_summary("2D mesh", M2);
   }
-  std::cout<<std::endl;
-  for(auto v : M2.vertices())
+
   {
-     std::cout<<v.coordinates()[0]<<" "<<v.coordinates()[1]<<std::endl;
+    mesh<3> M3;
+    gmesh<mesh<3>> G3;
+    G3.read_gmsh(M3, "test_files/test_3d_hybrid.msh");
+    print_mesh_summary("3D mesh", M3);
   }
+
   return 0;
 }
