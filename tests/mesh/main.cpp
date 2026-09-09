@@ -21,9 +21,14 @@ void test_topology_connectivities(
 
   for (size_t i = 0; i < expected.size(); ++i)
   {
-    std::vector<size_t> const & result = topo.template get_connectivities<D1, D2>(i);
+    auto result = topo.template get_connectivities<D1, D2>(i);
     assert(result.size()==expected[i].size());
-    assert(result == expected[i]);
+    for(size_t j=0; j<result.size(); ++j)
+    {
+      std::cout<<result[j]<<" "<<expected[i][j]<<std::endl;
+    }
+    std::cout<<std::endl;
+    assert(std::equal(result.begin(), result.end(), expected[i].begin(), expected[i].end()));
   }
   message("finished");
   std::cout<<std::endl;

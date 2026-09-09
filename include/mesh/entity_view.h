@@ -22,10 +22,10 @@ struct entity_iterator
   using pointer           = value_type*;  
   using reference         = value_type&;
 
-  entity_iterator(Mesh * M_, int i, std::vector<size_t> const * idxs) : M(M_), idx(i), indices(idxs) {}
+  entity_iterator(Mesh * M_, int i, std::span<const size_t> idxs) : M(M_), idx(i), indices(idxs) {}
 
-  value_type operator*() const {return entity_view<Mesh,D>(M, (*indices)[idx]);}
-  pointer operator->() const {return entity_view<Mesh,D>(M, (*indices)[idx]);}
+  value_type operator*() const {return entity_view<Mesh,D>(M, indices[idx]);}
+  pointer operator->() const {return entity_view<Mesh,D>(M, indices[idx]);}
 
   // Prefix increment
   entity_iterator &operator++()
@@ -48,18 +48,18 @@ struct entity_iterator
   private:
     Mesh* M;
     size_t idx;
-    std::vector<size_t> const * indices;
+    std::span<const size_t> indices;
 };
 
 template<typename Mesh, size_t D>
 struct entity_range
 {
-  entity_range(Mesh * M_, std::vector<size_t> const * idxs) : M(M_), indices(idxs){}
+  entity_range(Mesh * M_, std::span<const size_t> idxs) : M(M_), indices(idxs){}
   entity_iterator<Mesh,D> begin(){return entity_iterator<Mesh,D>(M,0, indices);}
-  entity_iterator<Mesh,D> end(){return entity_iterator<Mesh,D>(M,indices->size(), indices);}
+  entity_iterator<Mesh,D> end(){return entity_iterator<Mesh,D>(M,indices.size(), indices);}
   private:
     Mesh* M;
-    const std::vector<size_t> * indices;
+    std::span<const size_t> indices;
 
 };
 
@@ -77,9 +77,16 @@ class entity_view
     template<size_t d>
     entity_range<Mesh,d> entities()
     {
-
-        std::vector<size_t> & local_indices= M->topo.template get_connectivities<D,d>(index_);
-        return entity_range<Mesh,d>(M,&local_indices);
+      if constexpr(D==d)
+      {
+        std::cout<<"Return adjacency  TODO\n";
+        return entity_range<Mesh,d>(M, {});
+      }
+      else
+      {
+        auto local_indices = M->topo.template get_connectivities<D,d>(index_);
+        return entity_range<Mesh,d>(M, local_indices);
+      }
     }
     auto cells()     { return entities<Mesh::dim_topo>();   }
     auto facets()    { return entities<Mesh::dim_topo-1>(); }
