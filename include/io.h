@@ -8,6 +8,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <stdexcept>
 
 #include <mesh/mesh.h>
 #include <mesh/topology/shape.h>
@@ -158,6 +159,90 @@ struct gmesh
   }
 
  
+};
+
+template<typename Mesh>
+struct vtu
+{
+  static int vtk_cell_type(shapes::ShapeType shape)
+  {
+    switch (shape)
+    {
+    case shapes::ShapeType::vertex:       return 1;
+    case shapes::ShapeType::edge:         return 3;
+    case shapes::ShapeType::triangle:     return 5;
+    case shapes::ShapeType::quadrangle:   return 9;
+    case shapes::ShapeType::tetrahedron:  return 10;
+    case shapes::ShapeType::hexahedron:   return 12;
+    case shapes::ShapeType::prism:        return 13;
+    case shapes::ShapeType::pyramid:      return 14;
+    case shapes::ShapeType::count:        break;
+    }
+    throw std::runtime_error("vtu::write : unsupported cell shape");
+  }
+
+  static void write(const Mesh &M, const std::string &meshfile)
+  {
+    std::ofstream f(meshfile);
+    if (!f)
+    {
+      throw std::runtime_error("vtu::write : cannot open file " + meshfile);
+    }
+
+    const auto &cells = M.topo.connectivities[Mesh::dim_topo][0];
+    if (M.topo.shape_type.size() != cells.size())
+    {
+      throw std::runtime_error("vtu::write : cell shape count does not match connectivity count");
+    }
+
+    f << "<?xml version=\"1.0\"?>\n"
+      << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n"
+      << "  <UnstructuredGrid>\n"
+      << "    <Piece NumberOfPoints=\"" << M.geo.coords.size()
+      << "\" NumberOfCells=\"" << cells.size() << "\">\n";
+
+    f << "      <Points>\n"
+      << "        <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+    for (const auto &point : M.geo.coords)
+    {
+      for (int dimension = 0; dimension < 3; ++dimension)
+      {
+        f << (dimension < Mesh::dim_geo ? point[dimension] : 0.0) << ' ';
+      }
+      f << '\n';
+    }
+    f << "        </DataArray>\n"
+      << "      </Points>\n"
+      << "      <Cells>\n"
+      << "        <DataArray type=\"Int64\" Name=\"connectivity\" format=\"ascii\">\n";
+    for (size_t cell = 0; cell < cells.size(); ++cell)
+    {
+      for (size_t vertex : cells[cell])
+      {
+        f << vertex << ' ';
+      }
+      f << '\n';
+    }
+    f << "        </DataArray>\n"
+      << "        <DataArray type=\"Int64\" Name=\"offsets\" format=\"ascii\">\n";
+    size_t offset = 0;
+    for (size_t cell = 0; cell < cells.size(); ++cell)
+    {
+      offset += cells[cell].size();
+      f << offset << ' ';
+    }
+    f << "\n        </DataArray>\n"
+      << "        <DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">\n";
+    for (auto shape : M.topo.shape_type)
+    {
+      f << vtk_cell_type(shape) << ' ';
+    }
+    f << "\n        </DataArray>\n"
+      << "      </Cells>\n"
+      << "    </Piece>\n"
+      << "  </UnstructuredGrid>\n"
+      << "</VTKFile>\n";
+  }
 };
 
 

@@ -8,6 +8,7 @@
 #include <connectivities.h>
 #include <connectivities_hybrid.h>
 #include <entity_view_expected_values.h>
+#include "io.h"
 
 using namespace bib;
 
@@ -501,6 +502,10 @@ int main()
     G3.read_gmsh(M3, std::string(TEST_FILES_DIR) + "/test_3d_hybrid.msh");
     test_entity_view<3, 5, 3>(M3, expected_3d_hybrid_cells);
   }
+
+  message("VTU output");
+  test_vtu_write(std::string(TEST_FILES_DIR) + "/test_2d_hybrid.msh",
+                 std::string(TEST_FILES_DIR) + "/vtu_test.vtu");
   
   return 0;
 }

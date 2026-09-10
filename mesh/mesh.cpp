@@ -19,64 +19,10 @@ int main()
   gmesh<mesh<3>> G3;
   G3.read_gmsh(M3,"test_files/test2_3d.msh");
 
+  vtu<mesh<3>>::write(M3, "test_files/test_3d.vtu");
 
 
-  // std::cout<<std::endl;
-  // std::cout<<"========1D========\n";
 
-  // std::cout<<M1.topo.nb_vertices()<<" "<<M1.topo.nb_edges()<<" "<<M1.topo.nb_facets()<<" "<<M1.topo.nb_cells()<<"\n";
-  // // for(auto c : M1.facets())
-  // // {
-  //   // for(auto v : c.vertices())
-  //   //   {
-  //   //     std::cout<<v.index()<<" ";
-  //   //   }
-  //   //   std::cout<<"\n";
-  // // }
-
-  // std::cout<<std::endl;
-  // std::cout<<"========2D========\n";
-
-  // std::cout<<M2.topo.nb_vertices()<<" "<<M2.topo.nb_edges()<<" "<<M2.topo.nb_facets()<<" "<<M2.topo.nb_cells()<<"\n";
-  // std::cout<<"vertices :"<<M2.topo.nb_vertices()<<" \n";
-  // for(auto c : M2.cells())
-  // {
-  //   for(auto v : c.vertices())
-  //     {
-  //       std::cout<<v.index()<<" ";
-  //     }
-  //     std::cout<<"\n";
-  // }
-  // std::cout<<"inverse"<<std::endl;
-  // for(auto && v : M2.vertices())
-  // {
-  //   for(auto && c : v.cells())
-  //   {
-  //     std::cout<<c.index()<<" ";
-  //   }
-  //   std::cout<<"\n";
-  // }
-  // std::cout<<"build edges"<<std::endl;
-  // M2.topo.build_edges();
-  // auto edge_v  = M2.topo.connectivities[1][0];
-  // for(auto e : edge_v)
-  // {
-  //   for(auto v : e)
-  //   {
-  //     std::cout<<v<<" ";
-  //   }
-  //   std::cout<<std::endl;
-  // }
-  // std::cout<<"-----------------------"<<std::endl;
-  // for(auto && e : M2.edges())
-  // {
-  //     for(auto v : e.vertices())
-  //     {
-  //       std::cout<<v.index()<<" ";
-  //     }
-  //     std::cout<<"\n";
-  // }
-  // std::cout<<"fin"<<std::endl;
   M3.topo.build_adjacency<1>();
   auto & ad = M3.topo.connectivities[1][1];
   for(int i=0; i<ad.size(); ++i)
@@ -263,7 +209,7 @@ int main()
   std::cout<<std::endl;
   for(auto v : M2.vertices())
   {
-     std::cout<<v.coordinates()[0]<<" "<<v.coordinates()[1]<<std::endl;
+      std::cout<<v.coordinates()[0][0]<<" "<<v.coordinates()[0][1]<<std::endl;
   }
   return 0;
 }
