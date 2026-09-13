@@ -4,7 +4,7 @@
 #if MPI_INSTALLED
 #include <mpi.h>
 
-namespace mpi
+namespace parallel
 {
   /*
     Creates an MPI environment for GenMesh.
@@ -23,6 +23,7 @@ namespace mpi
         static Environment env;
         return env;
       }
+      
       int rank() { return rank_;}
       int size() { return size_;}
       MPI_Comm comm() { return comm_;}
@@ -63,7 +64,7 @@ namespace mpi
 }
 
 #else
-namespace mpi
+namespace parallel
 {
   class Environment
   {
