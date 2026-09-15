@@ -1,16 +1,11 @@
 #ifndef MESH
 #define MESH
 
-#include <string>
-#include <fstream>
-#include <sstream>
 
 #include <mesh/topology/topology.h>
 #include <mesh/geometry/geometry.h>
-#include <mesh/entity_view.h>
 #include <file_functions.h>
-
-
+#include <mesh/entity_view.h>
 
 template<typename Mesh, size_t D>
 struct mesh_iterator
@@ -73,15 +68,17 @@ D is the highest dimension of the elements (2 for triangle or 3 for tetrahedron 
 template <int G, int D=G>
 class mesh
 {
-
   public:
     mesh(){;}
+    mesh(geometry<G> geo, topology<D> topo) : geo_(geo), topo_(topo) {;}
 
     static constexpr int dim_topo = D;
     static constexpr int dim_geo  = G;
 
-    geometry<G> geo;
-    topology<D> topo;
+    geometry<G> & geo() {return geo_;}
+    const geometry<G> & geo() const {return geo_;}
+    topology<D> & topo() {return topo_;}
+    const topology<D> & topo() const {return topo_;}
 
     //iterator on Entity<Mesh,d,G> which allows to loop on the different entities of dim d
 
@@ -89,15 +86,30 @@ class mesh
     mesh_range<mesh<G,D>, d> entities()
     {
       static_assert(d<=D);
-      if (topo.connectivities[d][0].size()==0) topo.template build_connectivities<d,0>();
-      return mesh_range<mesh<G, D>, d>(this, 0, topo.nb_entities(d));
+      if (topo_.template get_connectivities<d,0>().size()==0) topo_.template build_connectivities<d,0>();
+      return mesh_range<mesh<G, D>, d>(this, 0, topo_.nb_entities(d));
+    }
+
+    template<size_t d>
+    mesh_range<const mesh<G,D>, d> entities() const
+    {
+      static_assert(d<=D);
+      return mesh_range<const mesh<G, D>, d>(this, 0, topo_.nb_entities(d));
     }
 
     auto cells()     { return entities<D>();   }
+    auto cells() const { return entities<D>(); }
     auto facets()    { return entities<D-1>(); }
+    auto facets() const { return entities<D-1>(); }
     auto edges()     { return entities<1>();   }
+    auto edges() const { return entities<1>(); }
     auto vertices()  { return entities<0>();   }
+    auto vertices() const { return entities<0>(); }
 
+
+    private:
+      geometry<G> geo_;
+      topology<D> topo_;
 
 };
 

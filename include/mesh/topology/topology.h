@@ -6,9 +6,7 @@
 #include <cassert>
 #include <map>
 #include <vector>
-#include <set>
 #include <span>
-#include <unordered_set>
 
 #include <mesh/topology/shape.h>
 #include <core/log.h>
@@ -20,6 +18,7 @@ template <int D>
 class topology
 {
 
+public:
   struct relation_table
   {
     std::vector<size_t> indices;
@@ -77,43 +76,64 @@ class topology
 
   };
 
+private:
+  mutable std::array<size_t, D + 1> nb_entities_{0};
+  // shape types
+  //  shape_type_[i] gives the type of the shape i. This shape is a cell (dim D).
+  std::vector<shapes::ShapeType> shape_type_;
+  mutable relation_table connectivities_[D + 1][D + 1];
+
+
 public:
   void set_nb_vertices(size_t n) { nb_entities_[0] = n; }
   void set_nb_edges(size_t n) { nb_entities_[1] = n; }
   void set_nb_facets(size_t n) { nb_entities_[D - 1] = n; }
   void set_nb_cells(size_t n) { nb_entities_[D] = n; }
 
-  size_t nb_vertices() { return nb_entities_[0]; }
-  size_t nb_edges() { return nb_entities_[1]; }
-  size_t nb_facets() { return nb_entities_[D - 1]; }
-  size_t nb_cells() { return nb_entities_[D]; }
-  size_t nb_entities(size_t i) { /*assert(i<D+1);*/ return nb_entities_[i]; }
+  size_t nb_vertices() const { return nb_entities_[0]; }
+  size_t nb_edges() const { return nb_entities_[1]; }
+  size_t nb_facets() const { return nb_entities_[D - 1]; }
+  size_t nb_cells() const { return nb_entities_[D]; }
+  size_t nb_entities(size_t i) const { /*assert(i<D+1);*/ return nb_entities_[i]; }
 
-  std::array<size_t, D + 1> nb_entities_{0};
+  std::vector<shapes::ShapeType>& shape_type(){return shape_type_;}
+  std::vector<shapes::ShapeType> const& shape_type() const {return shape_type_;}
 
-  // shape types
-  //  shape_type[i] gives the type of the shape i. This shape is a cell (dim D).
-  std::vector<shapes::ShapeType> shape_type;
-
-  relation_table connectivities[D + 1][D + 1];
 
   template <size_t D1, size_t D2>
   std::span<size_t> get_connectivities(size_t index)
   {
-    if (connectivities[D1][D2].size() == 0)
+    if (connectivities_[D1][D2].size() == 0)
     {
       build_connectivities<D1, D2>();
     }
-    return connectivities[D1][D2][index];
+    return connectivities_[D1][D2][index];
   }
+
+  template <size_t D1, size_t D2>
+  std::span<const size_t> get_connectivities(size_t index) const
+  {
+    return connectivities_[D1][D2][index];
+  }
+  
   template <size_t D1, size_t D2>
   relation_table &get_connectivities()
   {
-    if (connectivities[D1][D2].size() == 0)
+    if (connectivities_[D1][D2].size() == 0)
     {
       build_connectivities<D1, D2>();
     }
-    return connectivities[D1][D2];
+    return connectivities_[D1][D2];
+  }
+
+  template <size_t D1, size_t D2>
+  const relation_table &get_connectivities() const
+  {
+    if (connectivities_[D1][D2].size() == 0)
+    {
+      build_connectivities<D1, D2>();
+    }
+    return connectivities_[D1][D2];
   }
 
   /*!
@@ -121,25 +141,25 @@ public:
   Two entities of dim d are adjacent if they share an entity of dim d-1
   */
   template<size_t D1>
-  void build_adjacency()
+  void build_adjacency() const
   {
     if constexpr (D1>0)
     {
-      if (connectivities[D1][D1 - 1].size() == 0)
+      if (connectivities_[D1][D1 - 1].size() == 0)
       {
         build_connectivities<D1, D1 - 1>();
       }
       bib::debug_message("One construction done");
-      if (connectivities[D1 - 1][D1].size() == 0)
+      if (connectivities_[D1 - 1][D1].size() == 0)
       {
         build_connectivities<D1 - 1, D1>();
       }
       bib::debug_message("Two constructions done");
-      std::vector<std::vector<size_t>> adjacency_rows(connectivities[D1][D1 - 1].size());
-      auto &up_incidence = connectivities[D1 - 1][D1];
+      std::vector<std::vector<size_t>> adjacency_rows(connectivities_[D1][D1 - 1].size());
+      auto &up_incidence = connectivities_[D1 - 1][D1];
       for (size_t i = 0; i < adjacency_rows.size(); ++i) // e is the set of indices of entities of dim D1-1 in the current entity
       {
-        auto e = connectivities[D1][D1 - 1][i];
+        auto e = connectivities_[D1][D1 - 1][i];
         for (auto sub : e)
         {
           adjacency_rows[i].insert(adjacency_rows[i].end(), up_incidence[sub].begin(), up_incidence[sub].end());
@@ -149,16 +169,16 @@ public:
         relation.erase(std::unique(relation.begin(), relation.end()), relation.end());
         relation.erase(std::remove(relation.begin(), relation.end(), i), relation.end());
       }
-      connectivities[D1][D1].assign(adjacency_rows);
+      connectivities_[D1][D1].assign(adjacency_rows);
     }
     else
     {
       auto &down_incidence = get_connectivities<D1+1,D1>();
       get_connectivities<D1,D1+1>();
-      std::vector<std::vector<size_t>> adjacency_rows(connectivities[D1][D1 + 1].size());
+      std::vector<std::vector<size_t>> adjacency_rows(connectivities_[D1][D1 + 1].size());
       for (size_t i = 0; i < adjacency_rows.size(); ++i) // e is the set of indices of entities of dim D1+1 in the current entity
       {
-        auto e = connectivities[D1][D1 + 1][i];
+        auto e = connectivities_[D1][D1 + 1][i];
         for (auto sub : e)
         {
           adjacency_rows[i].insert(adjacency_rows[i].end(), down_incidence[sub].begin(), down_incidence[sub].end());
@@ -168,14 +188,14 @@ public:
         relation.erase(std::unique(relation.begin(), relation.end()), relation.end());
         relation.erase(std::remove(relation.begin(), relation.end(), i), relation.end());
       }
-      connectivities[D1][D1].assign(adjacency_rows);
+      connectivities_[D1][D1].assign(adjacency_rows);
     }
   }
   /*!
-  Build connectivities C[D1][D2]
+  Build connectivities_ C[D1][D2]
   */
   template <size_t D1, size_t D2>
-  void build_connectivities()
+  void build_connectivities() const
   {
     bib::debug_message("start building %d %d", D1, D2);
     if constexpr (D1==D2){build_adjacency<D1>(); return;}
@@ -183,19 +203,19 @@ public:
     {
       if (this->nb_entities_[d1] != 0)
       {
-        connectivities[d1][d2].resize(nb_entities_[d1]);
+        connectivities_[d1][d2].resize(nb_entities_[d1]);
       }
-      for (int i = 0; i < connectivities[d2][d1].size(); ++i)
+      for (int i = 0; i < connectivities_[d2][d1].size(); ++i)
       {
-        for (size_t global_j : connectivities[d2][d1][i])
+        for (size_t global_j : connectivities_[d2][d1][i])
         {
-          connectivities[d1][d2].append(global_j, i);
+          connectivities_[d1][d2].append(global_j, i);
         }
       }
     };
 
     
-    if (connectivities[D2][D1].size() != 0) // if C[D2][D1] is already built, we can build C[D1][D2] by inverting the relation table C[D2][D1]
+    if (connectivities_[D2][D1].size() != 0) // if C[D2][D1] is already built, we can build C[D1][D2] by inverting the relation table C[D2][D1]
     {
       bib::debug_message("In case we can inverse");
       inverse_relation(D1,D2);
@@ -207,11 +227,11 @@ public:
       if constexpr (D2 == 0) // relation d-0 are built from cell-vertex relations and vertex-entity relations defined in shape.h
       {
         bib::debug_message("case D2==0");
-        if (D1 == 1)
+        if constexpr (D1 == 1)
         {
           build_edges();
         }
-        if (D1 == 2)
+        if constexpr (D1 == 2 && D > 2)
         {
           build_faces();
         }
@@ -230,29 +250,29 @@ public:
         inverse_relation(D1,D2);
         return;
       }
-      if (connectivities[D2][0].size() == 0 )
+      if (connectivities_[D2][0].size() == 0 )
       {
         build_connectivities<D2, 0>();
       }
-      if (connectivities[D1][0].size() == 0)
+      if (connectivities_[D1][0].size() == 0)
       {
         build_connectivities<D1, 0>();
       }
       bib::debug_message("here");
-      connectivities[D1][D2].resize(nb_entities_[D1]);
+      connectivities_[D1][D2].resize(nb_entities_[D1]);
 
       // assuming we have C[D2][0]
       std::map<std::vector<size_t>, size_t> C_D2_0;
       for (int i = 0; i < nb_entities_[D2]; ++i)
       {
-        auto vertices = connectivities[D2][0][i];
+        auto vertices = connectivities_[D2][0][i];
         C_D2_0[std::vector<size_t>(vertices.begin(), vertices.end())] = i;
       }
       for (int i = 0; i < nb_entities_[D1]; ++i)
       {
         if (D2 == 1)
         {
-          auto cell_v = connectivities[D1][0][i]; // contains indices of vertices composing the cell i
+          auto cell_v = connectivities_[D1][0][i]; // contains indices of vertices composing the cell i
           auto ed = shapes::edge_desc[static_cast<int>(shapes::get_shape_from_dim_vertices(D1, cell_v.size()))];
           for (int j = 0; j < ed.nb_edge; ++j)
           {
@@ -262,7 +282,7 @@ public:
               std::swap(v0, v1);
             auto found = C_D2_0.find({v0, v1});
             if (found != C_D2_0.end())
-              connectivities[D1][D2].append(i, found->second);
+              connectivities_[D1][D2].append(i, found->second);
           }
         }
         if (D2 == 2) // if D2==2, D1==3 by definition
@@ -294,8 +314,8 @@ public:
             return can_norm;
           };
 
-          auto cell_v = connectivities[D1][0][i]; // contains indices of vertices composing the cell i
-          auto fd = shapes::face_desc[static_cast<int>(shape_type[i])];
+          auto cell_v = connectivities_[D1][0][i]; // contains indices of vertices composing the cell i
+          auto fd = shapes::face_desc[static_cast<int>(shape_type_[i])];
           for (int j = 0; j < fd.nb_face; ++j)
           {
             int offset = fd.face_vertex_offset[j];
@@ -308,7 +328,7 @@ public:
             vertices = normalize_indices(vertices);
             auto found = C_D2_0.find(vertices);
             if (found != C_D2_0.end())
-              connectivities[D1][D2].append(i, found->second);
+              connectivities_[D1][D2].append(i, found->second);
           }
         }
       }
@@ -318,15 +338,15 @@ public:
 
   }
 
-  void build_edges()
+  void build_edges() const
   {
     std::cout << "build edges" << std::endl;
     std::vector<std::vector<size_t>> edge_v;
     edge_v.reserve(3 * nb_entities_[D]);
     for (int i = 0; i < nb_entities_[D]; ++i)
     {
-      auto cell_v = connectivities[D][0][i]; // contains indices of vertices composing the cell i
-      auto ed = shapes::edge_desc[static_cast<int>(shape_type[i])];
+      auto cell_v = connectivities_[D][0][i]; // contains indices of vertices composing the cell i
+      auto ed = shapes::edge_desc[static_cast<int>(shape_type_[i])];
       for (int j = 0; j < ed.nb_edge; ++j)
       {
         size_t v0 = cell_v[ed.edge_vertex[j][0]];
@@ -338,11 +358,11 @@ public:
     }
     std::sort(edge_v.begin(), edge_v.end());
     edge_v.erase(std::unique(edge_v.begin(), edge_v.end()), edge_v.end());
-    connectivities[1][0].assign(edge_v);
+    connectivities_[1][0].assign(edge_v);
     nb_entities_[1] = edge_v.size();
   }
 
-  void build_faces()
+  void build_faces() const
   {
     bib::debug_message("build faces");
     assert(D > 2);
@@ -378,8 +398,8 @@ public:
     face_v.reserve(3 * nb_entities_[D]); // coarse estimation
     for (int i = 0; i < nb_entities_[D]; ++i)
     {
-      auto cell_v = connectivities[D][0][i]; // contains indices of vertices composing the cell i
-      auto fd = shapes::face_desc[static_cast<int>(shape_type[i])];
+      auto cell_v = connectivities_[D][0][i]; // contains indices of vertices composing the cell i
+      auto fd = shapes::face_desc[static_cast<int>(shape_type_[i])];
       for (int j = 0; j < fd.nb_face; ++j)
       {
         int offset = fd.face_vertex_offset[j];
@@ -394,7 +414,7 @@ public:
     }
     std::sort(face_v.begin(), face_v.end());
     face_v.erase(std::unique(face_v.begin(), face_v.end()), face_v.end());
-    connectivities[2][0].assign(face_v);
+    connectivities_[2][0].assign(face_v);
     nb_entities_[2] = face_v.size();
   }
 };

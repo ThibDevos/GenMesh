@@ -9,6 +9,8 @@
 #include <vector>
 #include <iostream>
 
+#include <parallel/wrapper_mpi.h>
+
 #include <mesh/mesh.h>
 #include <mesh/topology/shape.h>
 #include <file_functions.h>
@@ -36,18 +38,18 @@ struct gmesh
       iss>>local_vertices[i];
       --local_vertices[i];
     }
-    M.topo.connectivities[Shape::D][0].push_back(local_vertices);
+    M.topo().template get_connectivities<Shape::D,0>().push_back(local_vertices);
     
     // switch (Shape::D)
     // {
     // case M.dim_topo: //cell
-    //   M.topo.connectivi
+    //   M.topo().connectivi
     //   break;
     // case M.dim_topo - 1: //facet 
-    //    M.topo.facet_connectivities.lowest.push_back(local_vertices);
+    //    M.topo().facet_connectivities.lowest.push_back(local_vertices);
     //   break;
     // case 1: //edge
-    //    M.topo.edge_connectivities.lowest.push_back(local_vertices);
+    //    M.topo().edge_connectivities.lowest.push_back(local_vertices);
     //   break;
     
     // default:
@@ -94,6 +96,7 @@ struct gmesh
 
   void read_gmsh(Mesh & M, std::string meshfile)
   {
+    if(!parallel::is_root()) return;
     std::istringstream iss;
     std::string line;
     std::ifstream f(meshfile);
@@ -112,8 +115,8 @@ struct gmesh
     iss.str(line);
     int nb_vertices;
     iss >> nb_vertices;
-    M.topo.set_nb_vertices(nb_vertices);
-    M.geo.coords.resize(nb_vertices);
+    M.topo().set_nb_vertices(nb_vertices);
+    M.geo().coords.resize(nb_vertices);
 
     int index = 0;
     double x = 0.;
@@ -127,7 +130,7 @@ struct gmesh
       for (int i = 0; i < M.dim_geo; ++i)
       {
         iss >> x;
-        M.geo.coords[index][i] = x;
+        M.geo().coords[index][i] = x;
       }
       getline(f, line);
     }
@@ -148,12 +151,12 @@ struct gmesh
       // Only add elements that belong to the mesh domain (ignore boundary elements for now)
       if(dim_el == M.dim_topo) {
         f_builders[static_cast<int>(gtypes_types[type])](M, iss);
-        M.topo.shape_type.push_back(gtypes_types[type]);
+        M.topo().shape_type().push_back(gtypes_types[type]);
       }
       getline(f, line);
     }
 
-    M.topo.set_nb_cells(M.topo.connectivities[M.dim_topo][0].size());
+    M.topo().set_nb_cells(M.topo().template get_connectivities<M.dim_topo,0>().size());
   
   }
 

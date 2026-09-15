@@ -3,9 +3,7 @@
 
 #include <cassert>
 #include <cmath>
-#include <numeric>
 #include <core/math.h>
-#include <mesh/mesh.h>
 #include <mesh/topology/shape.h>
 
 
@@ -84,7 +82,7 @@ class entity_view
       }
       else
       {
-        auto local_indices = M->topo.template get_connectivities<D,d>(index_);
+        auto local_indices = M->topo().template get_connectivities<D,d>(index_);
         return entity_range<Mesh,d>(M, local_indices);
       }
     }
@@ -98,7 +96,7 @@ class entity_view
     size_t nb_vertices()
     {
       if constexpr(D==0) return 1;
-      return M->topo.template get_connectivities<D,0>(index_).size();
+      return M->topo().template get_connectivities<D,0>(index_).size();
     }
 
     auto coordinates()
@@ -108,7 +106,7 @@ class entity_view
       {
         for(int i=0; i < Mesh::dim_geo; ++i)
         {
-          coords[0][i] = M->geo.coords[this->index_][i];
+          coords[0][i] = M->geo().coords[this->index_][i];
         }
       }
       else
@@ -118,7 +116,7 @@ class entity_view
         {
           for (int i = 0; i < Mesh::dim_geo; ++i)
           {
-            coords[j][i] = M->geo.coords[vj.index()][i];
+            coords[j][i] = M->geo().coords[vj.index()][i];
           }
           ++j;
         }
@@ -133,7 +131,7 @@ class entity_view
       {
         for (int i = 0; i < Mesh::dim_geo; ++i)
         {
-          bary[i] = M->geo.coords[this->index_][i];
+          bary[i] = M->geo().coords[this->index_][i];
         }
         return bary;
       }
@@ -144,7 +142,7 @@ class entity_view
         {
           for (int i = 0; i < Mesh::dim_geo; ++i)
           {
-            bary[i] += M->geo.coords[vj.index()][i] * inv_dim;
+            bary[i] += M->geo().coords[vj.index()][i] * inv_dim;
           }
         }
         return bary;
