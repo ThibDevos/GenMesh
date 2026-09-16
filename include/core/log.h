@@ -1,6 +1,7 @@
 #ifndef CORE_LOG_H
 #define CORE_LOG_H
 
+#include "parallel/wrapper_mpi.h"
 #include <ctime>
 #include <fstream>
 #include <sstream>
@@ -31,7 +32,7 @@ void error(T msg)
 template<typename... Args>
 void debug_message(const char* msg, Args ... args)
 {
-  std::cout<<"[DEBUG] ";
+  std::cout<<"[DEBUG "<<parallel::rank()<<" ] ";
   printf(msg, args...);
   std::cout<<std::endl;
 }
