@@ -1,7 +1,9 @@
 #ifndef IO_H
 #define IO_H
 
+#include "parallel/wrapper_mpi.h"
 #include <array>
+#include <filesystem>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -37,18 +39,18 @@ struct gmesh
       iss>>local_vertices[i];
       --local_vertices[i];
     }
-    M.topo.connectivities[Shape::D][0].push_back(local_vertices);
+    M.topo().template get_connectivities<Shape::D,0>().push_back(local_vertices);
     
     // switch (Shape::D)
     // {
     // case M.dim_topo: //cell
-    //   M.topo.connectivi
+    //   M.topo().connectivi
     //   break;
     // case M.dim_topo - 1: //facet 
-    //    M.topo.facet_connectivities.lowest.push_back(local_vertices);
+    //    M.topo().facet_connectivities.lowest.push_back(local_vertices);
     //   break;
     // case 1: //edge
-    //    M.topo.edge_connectivities.lowest.push_back(local_vertices);
+    //    M.topo().edge_connectivities.lowest.push_back(local_vertices);
     //   break;
     
     // default:
@@ -95,6 +97,7 @@ struct gmesh
 
   void read_gmsh(Mesh & M, std::string meshfile)
   {
+    if(!parallel::is_root()) return;
     std::istringstream iss;
     std::string line;
     std::ifstream f(meshfile);
@@ -113,8 +116,8 @@ struct gmesh
     iss.str(line);
     int nb_vertices;
     iss >> nb_vertices;
-    M.topo.set_nb_vertices(nb_vertices);
-    M.geo.coords.resize(nb_vertices);
+    M.topo().set_nb_vertices(nb_vertices);
+    M.geo().coords.resize(nb_vertices);
 
     int index = 0;
     double x = 0.;
@@ -128,7 +131,7 @@ struct gmesh
       for (int i = 0; i < M.dim_geo; ++i)
       {
         iss >> x;
-        M.geo.coords[index][i] = x;
+        M.geo().coords[index][i] = x;
       }
       getline(f, line);
     }
@@ -149,12 +152,12 @@ struct gmesh
       // Only add elements that belong to the mesh domain (ignore boundary elements for now)
       if(dim_el == M.dim_topo) {
         f_builders[static_cast<int>(gtypes_types[type])](M, iss);
-        M.topo.shape_type.push_back(gtypes_types[type]);
+        M.topo().shape_type().push_back(gtypes_types[type]);
       }
       getline(f, line);
     }
 
-    M.topo.set_nb_cells(M.topo.connectivities[M.dim_topo][0].size());
+    M.topo().set_nb_cells(M.topo().template get_connectivities<M.dim_topo,0>().size());
   
   }
 
@@ -181,16 +184,49 @@ struct vtu
     throw std::runtime_error("vtu::write : unsupported cell shape");
   }
 
-  static void write(const Mesh &M, const std::string &meshfile)
+  //meshfile does not contain the extension
+  static void write(const Mesh &M, std::string meshfile)
   {
+    if(parallel::is_root() && parallel::size()>1)
+    {
+      std::ofstream pvtu(meshfile + ".pvtu");
+      if (!pvtu)
+      {
+        throw std::runtime_error("vtu::write : cannot open file " + meshfile + ".pvtu");
+      }
+
+      pvtu << "<?xml version=\"1.0\"?>\n"
+           << "<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n"
+           << "  <PUnstructuredGrid GhostLevel=\"0\">\n";
+       pvtu << "    <PPointData/>\n"
+         << "    <PCellData Scalars=\"rank\">\n"
+         << "      <PDataArray type=\"Int32\" Name=\"rank\" format=\"ascii\"/>\n"
+         << "    </PCellData>\n"
+         << "    <PPoints>\n"
+         << "      <PDataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\"/>\n"
+         << "    </PPoints>\n"
+         << "    <PCells>\n"
+         << "      <PDataArray type=\"Int64\" Name=\"connectivity\" format=\"ascii\"/>\n"
+         << "      <PDataArray type=\"Int64\" Name=\"offsets\" format=\"ascii\"/>\n"
+         << "      <PDataArray type=\"UInt8\" Name=\"types\" format=\"ascii\"/>\n"
+         << "    </PCells>\n";
+      const auto piece_prefix = std::filesystem::path(meshfile).filename().string();
+      for (int rank = 0; rank < parallel::size(); ++rank)
+      {
+        pvtu << "    <Piece Source=\"" << piece_prefix << "_" << rank << ".vtu\"/>\n";
+      }
+      pvtu << "  </PUnstructuredGrid>\n"
+           << "</VTKFile>\n";
+    }
+    meshfile += "_"+std::to_string(parallel::rank()) + ".vtu";
     std::ofstream f(meshfile);
     if (!f)
     {
       throw std::runtime_error("vtu::write : cannot open file " + meshfile);
     }
 
-    const auto &cells = M.topo.connectivities[Mesh::dim_topo][0];
-    if (M.topo.shape_type.size() != cells.size())
+    const auto &cells = M.topo().template get_connectivities<Mesh::dim_topo,0>();
+    if (M.topo().shape_type().size() != cells.size())
     {
       throw std::runtime_error("vtu::write : cell shape count does not match connectivity count");
     }
@@ -198,12 +234,12 @@ struct vtu
     f << "<?xml version=\"1.0\"?>\n"
       << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n"
       << "  <UnstructuredGrid>\n"
-      << "    <Piece NumberOfPoints=\"" << M.geo.coords.size()
+      << "    <Piece NumberOfPoints=\"" << M.geo().coords.size()
       << "\" NumberOfCells=\"" << cells.size() << "\">\n";
 
     f << "      <Points>\n"
       << "        <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-    for (const auto &point : M.geo.coords)
+    for (const auto &point : M.geo().coords)
     {
       for (int dimension = 0; dimension < 3; ++dimension)
       {
@@ -215,11 +251,11 @@ struct vtu
       << "      </Points>\n"
       << "      <Cells>\n"
       << "        <DataArray type=\"Int64\" Name=\"connectivity\" format=\"ascii\">\n";
-    for (size_t cell = 0; cell < cells.size(); ++cell)
+    for (auto && c : M.cells())
     {
-      for (size_t vertex : cells[cell])
+      for (auto && v : c.vertices())
       {
-        f << vertex << ' ';
+        f << v.index() << ' ';
       }
       f << '\n';
     }
@@ -233,12 +269,20 @@ struct vtu
     }
     f << "\n        </DataArray>\n"
       << "        <DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">\n";
-    for (auto shape : M.topo.shape_type)
+    for (auto shape : M.topo().shape_type())
     {
       f << vtk_cell_type(shape) << ' ';
     }
     f << "\n        </DataArray>\n"
       << "      </Cells>\n"
+      << "      <CellData Scalars=\"rank\">\n"
+      << "        <DataArray type=\"Int32\" Name=\"rank\" format=\"ascii\">\n";
+    for (size_t cell = 0; cell < cells.size(); ++cell)
+    {
+      f << parallel::rank() << ' ';
+    }
+    f << "\n        </DataArray>\n"
+      << "      </CellData>\n"
       << "    </Piece>\n"
       << "  </UnstructuredGrid>\n"
       << "</VTKFile>\n";
