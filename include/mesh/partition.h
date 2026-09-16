@@ -2,6 +2,7 @@
 #define PARTITION_H
 
 #include "core/log.h"
+#include "core/math.h"
 #include "mesh/geometry/geometry.h"
 #include "mesh/topology/topology.h"
 #include <mesh/mesh.h>
@@ -69,9 +70,48 @@ class Morton_partition
       radix_sort_indices(Morton_code, indices);
       
       std::vector<size_t> owners(nb_cells);
+      std::vector<std::array<double, G>> part_centroids(parallel::size());
+      std::vector<size_t> nb_r_cells(parallel::size());
+
+      //compute the centroids of the partitions
       for(int i=0; i<nb_cells; i++)
       {
-        owners[indices[i]] = static_cast<int>((i * parallel::size()) / nb_cells) ;
+        int j = indices[i];
+        int r = static_cast<int>((i * parallel::size()) / nb_cells);
+
+        ++nb_r_cells[r];
+        for(int d = 0; d<G; ++d)
+          part_centroids[r][d] += centroid_coords[j][d];
+      }
+      for(int r=0; r<parallel::size(); ++r)
+      {
+        int nb_r = nb_r_cells[r];
+        for(int d=0; d<G; ++d)
+        {
+          part_centroids[r][d] /= nb_r; 
+        }
+      }    
+
+      //assign each cell to the closest partition
+      for(int i=0; i<nb_cells; ++i)
+      {
+        double d_min = std::numeric_limits<double>::max();
+        int current_rank = -1;
+        auto coord = centroid_coords[indices[i]];
+        for(int r=0; r<parallel::size(); ++r)
+        {
+          double d = 0;
+          for(int j = 0; j<G; ++j)
+          {
+            d += (coord[j]-part_centroids[r][j])*(coord[j]-part_centroids[r][j]);
+          }
+          if(d<d_min)
+          {
+            d_min = d;
+            current_rank = r;
+          }
+        }
+        owners[indices[i]] = current_rank;
       }
       //XXX ghosts
 
@@ -94,7 +134,7 @@ class Morton_partition
   template<size_t D>
   void build_local_mesh_data(mesh<G,D> const & M, std::vector<size_t>& owners, int r, local_mesh_data<D>& local_mesh_data)
   {
-    bib::debug_message("In build_local_mesh_data");
+    //bib::debug_message("In build_local_mesh_data");
     std::unordered_map<size_t, size_t> global_to_local_vertices;
     auto & cell_vertex = M.topo().template get_connectivities<D,0>();
     size_t current_vertex = 0;
@@ -129,7 +169,7 @@ class Morton_partition
   template<size_t D>
   mesh<G,D> build_mesh_from_local_data(local_mesh_data<D> & local_mesh_data)
   {
-    bib::debug_message("In build_mesh_from_local_data");
+    //bib::debug_message("In build_mesh_from_local_data");
     geometry<G> loc_geo;
     topology<D> loc_topo;
     
@@ -147,7 +187,7 @@ class Morton_partition
   template<size_t D>
   void send_local_mesh_data(local_mesh_data<D> lmd[])
   {
-    bib::debug_message("In send");
+    //bib::debug_message("In send");
     if(parallel::is_root())
     {
       for(int r=1; r<parallel::size(); ++r)
@@ -159,23 +199,23 @@ class Morton_partition
         size_t size_indices = lmdr.cell_vertex.indices.size();
 
         MPI_Send(&size_indices, 1, MPI_UNSIGNED_LONG, r, TAGS::SI, parallel::comm());
-        bib::debug_message("Sent size_indices");
+        //bib::debug_message("Sent size_indices");
         MPI_Send(&lmdr.nb_owned_cells, 1, MPI_UNSIGNED_LONG, r, TAGS::NOC, parallel::comm());
-        bib::debug_message("Sent nb_owned_cells");
+        //bib::debug_message("Sent nb_owned_cells");
         MPI_Send(&lmdr.nb_owned_vertices, 1, MPI_UNSIGNED_LONG, r, TAGS::NOV, parallel::comm());
-        bib::debug_message("Sent nb_owned_vertices");
+        //bib::debug_message("Sent nb_owned_vertices");
         MPI_Send(lmdr.coords.data(), size_vertices, MPI_coord_type, r, TAGS::COORD, parallel::comm());
-        bib::debug_message("Sent coords");
+        //bib::debug_message("Sent coords");
         MPI_Send(lmdr.shape_type.data(), size_cells, MPI_INT, r, TAGS::SHAPE, parallel::comm());
-        bib::debug_message("Sent shape_type");
+        //bib::debug_message("Sent shape_type");
         MPI_Send(lmdr.cell_vertex.indices.data(), size_indices, MPI_UNSIGNED_LONG, r, TAGS::CVI, parallel::comm());
-        bib::debug_message("Sent indices");
+        //bib::debug_message("Sent indices");
         MPI_Send(lmdr.cell_vertex.offsets.data(), size_cells + 1, MPI_UNSIGNED_LONG, r, TAGS::CVO, parallel::comm());
-        bib::debug_message("Sent offsets");
+        //bib::debug_message("Sent offsets");
         MPI_Send(lmdr.global_cell_id.data(), size_cells, MPI_UNSIGNED_LONG, r, TAGS::GCI, parallel::comm());
-        bib::debug_message("Sent globale_cell_id");
+        //bib::debug_message("Sent globale_cell_id");
         MPI_Send(lmdr.global_vertex_id.data(), size_vertices, MPI_UNSIGNED_LONG, r, TAGS::GVI, parallel::comm());
-        bib::debug_message("Sent globale_vertex_id");
+        //bib::debug_message("Sent globale_vertex_id");
       }
     }
   }
@@ -183,7 +223,7 @@ class Morton_partition
   template<size_t D>
   local_mesh_data<D> recv_local_mesh_data()
   {
-    bib::debug_message("In recv");
+    //bib::debug_message("In recv");
     local_mesh_data<D> lmdr;
     size_t size_indices;
     
