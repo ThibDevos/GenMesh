@@ -149,12 +149,12 @@ public:
       {
         build_connectivities<D1, D1 - 1>();
       }
-      bib::debug_message("One construction done");
+      //bib::debug_message("One construction done");
       if (connectivities_[D1 - 1][D1].size() == 0)
       {
         build_connectivities<D1 - 1, D1>();
       }
-      bib::debug_message("Two constructions done");
+      //bib::debug_message("Two constructions done");
       std::vector<std::vector<size_t>> adjacency_rows(connectivities_[D1][D1 - 1].size());
       auto &up_incidence = connectivities_[D1 - 1][D1];
       for (size_t i = 0; i < adjacency_rows.size(); ++i) // e is the set of indices of entities of dim D1-1 in the current entity
@@ -197,7 +197,7 @@ public:
   template <size_t D1, size_t D2>
   void build_connectivities() const
   {
-    bib::debug_message("start building %d %d", D1, D2);
+    //bib::debug_message("start building %d %d", D1, D2);
     if constexpr (D1==D2){build_adjacency<D1>(); return;}
     auto inverse_relation = [this](int d1, int d2)
     {
@@ -217,16 +217,16 @@ public:
     
     if (connectivities_[D2][D1].size() != 0) // if C[D2][D1] is already built, we can build C[D1][D2] by inverting the relation table C[D2][D1]
     {
-      bib::debug_message("In case we can inverse");
+      //bib::debug_message("In case we can inverse");
       inverse_relation(D1,D2);
       return;
     }
     else // we use the relation C[D1][0] and C[0][D2]
     {
-      bib::debug_message("In case we can't inverse");
+      //bib::debug_message("In case we can't inverse");
       if constexpr (D2 == 0) // relation d-0 are built from cell-vertex relations and vertex-entity relations defined in shape.h
       {
-        bib::debug_message("case D2==0");
+        //bib::debug_message("case D2==0");
         if constexpr (D1 == 1)
         {
           build_edges();
@@ -239,7 +239,7 @@ public:
       }
       if constexpr (D1 == 0)
       {
-        bib::debug_message("case D1==0");
+        // bib::debug_message("case D1==0");
         build_connectivities<D2, D1>();
         inverse_relation(D1, D2);
         return;
@@ -258,7 +258,6 @@ public:
       {
         build_connectivities<D1, 0>();
       }
-      bib::debug_message("here");
       connectivities_[D1][D2].resize(nb_entities_[D1]);
 
       // assuming we have C[D2][0]

@@ -1,10 +1,13 @@
 #ifndef MESH_ENTITY
 #define MESH_ENTITY
 
+#include "core/log.h"
 #include <cassert>
 #include <cmath>
 #include <core/math.h>
 #include <mesh/topology/shape.h>
+#include <span>
+#include <vector>
 
 
 

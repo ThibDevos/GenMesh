@@ -6,6 +6,7 @@
 #include "mesh/topology/topology.h"
 #include <mesh/mesh.h>
 #include <mpi.h>
+#include <numeric>
 #include <parallel/wrapper_mpi.h>
 #include <algorithm>
 #include <array>
@@ -20,7 +21,7 @@ template <size_t G>
 class Morton_partition
 {
 
-  enum TAGS {COORD, SHAPE, CVI, CVO, GCI, GVI, NOC, NOV};
+  enum TAGS {SI, COORD, SHAPE, CVI, CVO, GCI, GVI, NOC, NOV};
 
   template<size_t D>
   struct local_mesh_data
@@ -34,7 +35,7 @@ class Morton_partition
     std::vector<size_t> global_cell_id;
     std::vector<size_t> global_vertex_id;
     size_t nb_owned_cells = 0;
-    size_t nb_owned_vertices = 10;
+    size_t nb_owned_vertices = 0;
   };
 
   MPI_Datatype MPI_coord_type;
@@ -47,6 +48,7 @@ class Morton_partition
                                                                                 //Used for sending the coordinates
     MPI_Type_commit(&MPI_coord_type);//commits the new type to all proc
 
+    local_mesh_data<D> lmdr;
     if(parallel::is_root())
     {
       int nb_cells = M.topo().nb_cells();
@@ -59,6 +61,7 @@ class Morton_partition
       std::vector<std::array<uint32_t, D>> int_coords(nb_cells);
       std::vector<uint64_t> Morton_code(nb_cells);
       std::vector<int> indices(nb_cells); // Morton_code will be sorted. indices helps keeping a relation of indices between Morton_code and orignal indices
+      std::iota(indices.begin(), indices.end(), 0);
       
       // transform the floating points coordiantes of the vertices to Morton code
       float_coord_to_int(centroid_coords, int_coords);
@@ -79,9 +82,11 @@ class Morton_partition
         build_local_mesh_data<D>(M, owners, r, local_meshes_data[r]);
       }
 
+      lmdr = std::move(local_meshes_data[0]);
       send_local_mesh_data(local_meshes_data);
     }
-    local_mesh_data<D> lmdr = recv_local_mesh_data<D>();
+    if(!parallel::is_root())
+      lmdr = recv_local_mesh_data<D>();
     mesh<G,D> M_loc = build_mesh_from_local_data(lmdr);
     return M_loc;
   }
@@ -101,7 +106,6 @@ class Morton_partition
       {
         indices.clear();
         local_mesh_data.global_cell_id.push_back(i);
-        local_mesh_data.coords.push_back(M.geo().coords[i]);
         local_mesh_data.shape_type.push_back(M.topo().shape_type()[i]);
         auto global_vertices = cell_vertex[i];
         for(auto id_v : global_vertices)
@@ -110,6 +114,7 @@ class Morton_partition
           {
             local_mesh_data.global_vertex_id.push_back(id_v);
             global_to_local_vertices[id_v] = current_vertex;
+            local_mesh_data.coords.push_back(M.geo().coords[id_v]);
             ++current_vertex;
           }
           indices.push_back(global_to_local_vertices[id_v]);
@@ -124,6 +129,7 @@ class Morton_partition
   template<size_t D>
   mesh<G,D> build_mesh_from_local_data(local_mesh_data<D> & local_mesh_data)
   {
+    bib::debug_message("In build_mesh_from_local_data");
     geometry<G> loc_geo;
     topology<D> loc_topo;
     
@@ -141,22 +147,35 @@ class Morton_partition
   template<size_t D>
   void send_local_mesh_data(local_mesh_data<D> lmd[])
   {
-    
+    bib::debug_message("In send");
     if(parallel::is_root())
     {
-      for(int r=0; r<parallel::size(); ++r)
+      for(int r=1; r<parallel::size(); ++r)
       {
         auto & lmdr = lmd[r];
+        
         size_t size_cells = lmdr.nb_owned_cells;
         size_t size_vertices = lmdr.nb_owned_vertices;
+        size_t size_indices = lmdr.cell_vertex.indices.size();
+
+        MPI_Send(&size_indices, 1, MPI_UNSIGNED_LONG, r, TAGS::SI, parallel::comm());
+        bib::debug_message("Sent size_indices");
+        MPI_Send(&lmdr.nb_owned_cells, 1, MPI_UNSIGNED_LONG, r, TAGS::NOC, parallel::comm());
+        bib::debug_message("Sent nb_owned_cells");
+        MPI_Send(&lmdr.nb_owned_vertices, 1, MPI_UNSIGNED_LONG, r, TAGS::NOV, parallel::comm());
+        bib::debug_message("Sent nb_owned_vertices");
         MPI_Send(lmdr.coords.data(), size_vertices, MPI_coord_type, r, TAGS::COORD, parallel::comm());
+        bib::debug_message("Sent coords");
         MPI_Send(lmdr.shape_type.data(), size_cells, MPI_INT, r, TAGS::SHAPE, parallel::comm());
-        MPI_Send(lmdr.cell_vertex.indices.data(), size_cells, MPI_INT, r, TAGS::CVI, parallel::comm());
-        MPI_Send(lmdr.cell_vertex.offsets.data(), size_cells + 1, MPI_INT, r, TAGS::CVO, parallel::comm());
-        MPI_Send(lmdr.global_cell_id.data(), size_cells, MPI_INT, r, TAGS::GCI, parallel::comm());
-        MPI_Send(lmdr.global_vertex_id.data(), size_vertices, MPI_INT, r, TAGS::GVI, parallel::comm());
-        MPI_Send(&lmdr.nb_owned_cells, 1, MPI_INT, r, TAGS::NOC, parallel::comm());
-        MPI_Send(&lmdr.nb_owned_vertices, 1, MPI_INT, r, TAGS::NOV, parallel::comm());
+        bib::debug_message("Sent shape_type");
+        MPI_Send(lmdr.cell_vertex.indices.data(), size_indices, MPI_UNSIGNED_LONG, r, TAGS::CVI, parallel::comm());
+        bib::debug_message("Sent indices");
+        MPI_Send(lmdr.cell_vertex.offsets.data(), size_cells + 1, MPI_UNSIGNED_LONG, r, TAGS::CVO, parallel::comm());
+        bib::debug_message("Sent offsets");
+        MPI_Send(lmdr.global_cell_id.data(), size_cells, MPI_UNSIGNED_LONG, r, TAGS::GCI, parallel::comm());
+        bib::debug_message("Sent globale_cell_id");
+        MPI_Send(lmdr.global_vertex_id.data(), size_vertices, MPI_UNSIGNED_LONG, r, TAGS::GVI, parallel::comm());
+        bib::debug_message("Sent globale_vertex_id");
       }
     }
   }
@@ -164,24 +183,29 @@ class Morton_partition
   template<size_t D>
   local_mesh_data<D> recv_local_mesh_data()
   {
+    bib::debug_message("In recv");
     local_mesh_data<D> lmdr;
-    MPI_Recv(&lmdr.nb_owned_cells, 1, MPI_INT, 0, TAGS::NOC, parallel::comm(), MPI_STATUS_IGNORE);
-    MPI_Recv(&lmdr.nb_owned_vertices, 1, MPI_INT, 0, TAGS::NOV, parallel::comm(), MPI_STATUS_IGNORE);
+    size_t size_indices;
+    
+    MPI_Recv(&size_indices, 1, MPI_UNSIGNED_LONG, 0, TAGS::SI, parallel::comm(), MPI_STATUS_IGNORE);
+    MPI_Recv(&lmdr.nb_owned_vertices, 1, MPI_UNSIGNED_LONG, 0, TAGS::NOV, parallel::comm(), MPI_STATUS_IGNORE);
+    MPI_Recv(&lmdr.nb_owned_cells, 1, MPI_UNSIGNED_LONG, 0, TAGS::NOC, parallel::comm(), MPI_STATUS_IGNORE);
+
     size_t size_cells = lmdr.nb_owned_cells;
     size_t size_vertices = lmdr.nb_owned_vertices;
     lmdr.coords.resize(size_vertices);
     lmdr.shape_type.resize(size_cells);
-    lmdr.cell_vertex.indices.resize(size_cells);
+    lmdr.cell_vertex.indices.resize(size_indices);
     lmdr.cell_vertex.offsets.resize(size_cells+1);
     lmdr.global_cell_id.resize(size_cells);
     lmdr.global_vertex_id.resize(size_vertices);
 
     MPI_Recv(lmdr.coords.data(), size_vertices, MPI_coord_type, 0, TAGS::COORD, parallel::comm(), MPI_STATUS_IGNORE);
     MPI_Recv(lmdr.shape_type.data(), size_cells, MPI_INT, 0, TAGS::SHAPE, parallel::comm(), MPI_STATUS_IGNORE);
-    MPI_Recv(lmdr.cell_vertex.indices.data(), size_cells, MPI_INT, 0, TAGS::CVI, parallel::comm(), MPI_STATUS_IGNORE);
-    MPI_Recv(lmdr.cell_vertex.offsets.data(), size_cells + 1, MPI_INT, 0, TAGS::CVO, parallel::comm(), MPI_STATUS_IGNORE);
-    MPI_Recv(lmdr.global_cell_id.data(), size_cells, MPI_INT, 0, TAGS::GCI, parallel::comm(), MPI_STATUS_IGNORE);
-    MPI_Recv(lmdr.global_vertex_id.data(), size_vertices, MPI_INT, 0, TAGS::GVI, parallel::comm(), MPI_STATUS_IGNORE);
+    MPI_Recv(lmdr.cell_vertex.indices.data(), size_indices, MPI_UNSIGNED_LONG, 0, TAGS::CVI, parallel::comm(), MPI_STATUS_IGNORE);
+    MPI_Recv(lmdr.cell_vertex.offsets.data(), size_cells + 1, MPI_UNSIGNED_LONG, 0, TAGS::CVO, parallel::comm(), MPI_STATUS_IGNORE);
+    MPI_Recv(lmdr.global_cell_id.data(), size_cells, MPI_UNSIGNED_LONG, 0, TAGS::GCI, parallel::comm(), MPI_STATUS_IGNORE);
+    MPI_Recv(lmdr.global_vertex_id.data(), size_vertices, MPI_UNSIGNED_LONG, 0, TAGS::GVI, parallel::comm(), MPI_STATUS_IGNORE);
     return lmdr;
   }
 
