@@ -96,6 +96,11 @@ class entity_view
 
     shapes::ShapeType shape_type(){return shapes::get_shape_from_dim_vertices(D, nb_vertices());}
 
+    bool is_owned()
+    {
+      return index_ < M->topo().nb_owned_entities(D);
+    }
+
     size_t nb_vertices()
     {
       if constexpr(D==0) return 1;

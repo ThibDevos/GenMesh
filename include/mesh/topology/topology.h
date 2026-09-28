@@ -77,7 +77,10 @@ public:
   };
 
 private:
-  mutable std::array<size_t, D + 1> nb_entities_{0};
+  mutable std::array<size_t, D + 1> nb_entities_{0}; //owned + ghost
+  mutable std::array<size_t, D + 1> nb_owned_entities_{0}; 
+  std::array< std::vector<int>, D+1> ghost_owner_rank_; //ghost_owner_rank_[d][i] = rank of the ith ghost entity (idx i + nb_owned_ -1) of dim d.
+
   // shape types
   //  shape_type_[i] gives the type of the shape i. This shape is a cell (dim D).
   std::vector<shapes::ShapeType> shape_type_;
@@ -90,11 +93,22 @@ public:
   void set_nb_facets(size_t n) { nb_entities_[D - 1] = n; }
   void set_nb_cells(size_t n) { nb_entities_[D] = n; }
 
+  void set_nb_owned_vertices(size_t n) { nb_owned_entities_[0] = n; }
+  void set_nb_owned_edges(size_t n) { nb_owned_entities_[1] = n; }
+  void set_nb_owned_facets(size_t n) { nb_owned_entities_[D - 1] = n; }
+  void set_nb_owned_cells(size_t n) { nb_owned_entities_[D] = n; }
+
   size_t nb_vertices() const { return nb_entities_[0]; }
   size_t nb_edges() const { return nb_entities_[1]; }
   size_t nb_facets() const { return nb_entities_[D - 1]; }
   size_t nb_cells() const { return nb_entities_[D]; }
   size_t nb_entities(size_t i) const { /*assert(i<D+1);*/ return nb_entities_[i]; }
+
+  size_t nb_owned_vertices() const { return nb_owned_entities_[0]; }
+  size_t nb_owned_edges() const { return nb_owned_entities_[1]; }
+  size_t nb_owned_facets() const { return nb_owned_entities_[D - 1]; }
+  size_t nb_owned_cells() const { return nb_owned_entities_[D]; }
+  size_t nb_owned_entities(size_t i) const { /*assert(i<D+1);*/ return nb_owned_entities_[i]; }
 
   std::vector<shapes::ShapeType>& shape_type(){return shape_type_;}
   std::vector<shapes::ShapeType> const& shape_type() const {return shape_type_;}
@@ -112,7 +126,11 @@ public:
 
   template <size_t D1, size_t D2>
   std::span<const size_t> get_connectivities(size_t index) const
-  {
+  {    
+    if (connectivities_[D1][D2].size() == 0)
+    {
+      build_connectivities<D1, D2>();
+    }
     return connectivities_[D1][D2][index];
   }
   

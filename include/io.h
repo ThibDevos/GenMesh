@@ -198,7 +198,9 @@ struct vtu
       pvtu << "<?xml version=\"1.0\"?>\n"
            << "<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n"
            << "  <PUnstructuredGrid GhostLevel=\"0\">\n";
-       pvtu << "    <PPointData/>\n"
+       pvtu << "    <PPointData>\n"
+         << "      <PDataArray type=\"Float64\" Name=\"mass\" format=\"ascii\"/>\n"
+         << "    </PPointData>\n"
          << "    <PCellData Scalars=\"rank\">\n"
          << "      <PDataArray type=\"Int32\" Name=\"rank\" format=\"ascii\"/>\n"
          << "    </PCellData>\n"
@@ -234,16 +236,16 @@ struct vtu
     f << "<?xml version=\"1.0\"?>\n"
       << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n"
       << "  <UnstructuredGrid>\n"
-      << "    <Piece NumberOfPoints=\"" << M.geo().coords.size()
-      << "\" NumberOfCells=\"" << cells.size() << "\">\n";
+      << "    <Piece NumberOfPoints=\"" << M.topo().nb_vertices()
+      << "\" NumberOfCells=\"" << M.topo().nb_owned_cells() << "\">\n";
 
     f << "      <Points>\n"
       << "        <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-    for (const auto &point : M.geo().coords)
+    for (auto && v : M.vertices())
     {
-      for (int dimension = 0; dimension < 3; ++dimension)
-      {
-        f << (dimension < Mesh::dim_geo ? point[dimension] : 0.0) << ' ';
+      for (int dimension = 0; dimension < 3; ++dimension) {
+        f << (dimension < Mesh::dim_geo ? v.coordinates()[0][dimension] : 0.0)
+          << ' ';
       }
       f << '\n';
     }
@@ -253,37 +255,53 @@ struct vtu
       << "        <DataArray type=\"Int64\" Name=\"connectivity\" format=\"ascii\">\n";
     for (auto && c : M.cells())
     {
-      for (auto && v : c.vertices())
-      {
-        f << v.index() << ' ';
+      if (c.is_owned()) {
+        for (auto &&v : c.vertices()) {
+          f << v.index() << ' ';
+        }
+        f << '\n';
       }
-      f << '\n';
     }
     f << "        </DataArray>\n"
       << "        <DataArray type=\"Int64\" Name=\"offsets\" format=\"ascii\">\n";
     size_t offset = 0;
-    for (size_t cell = 0; cell < cells.size(); ++cell)
+    for (auto && c : M.cells())
     {
-      offset += cells[cell].size();
-      f << offset << ' ';
+      if (c.is_owned()) {
+        offset += c.nb_vertices();
+        f << offset << ' ';
+      }
     }
     f << "\n        </DataArray>\n"
       << "        <DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">\n";
-    for (auto shape : M.topo().shape_type())
+    for(int i=0; i<M.topo().nb_owned_cells(); ++i)
     {
-      f << vtk_cell_type(shape) << ' ';
+      f << vtk_cell_type(M.topo().shape_type()[i]) << ' ';
     }
     f << "\n        </DataArray>\n"
       << "      </Cells>\n"
       << "      <CellData Scalars=\"rank\">\n"
       << "        <DataArray type=\"Int32\" Name=\"rank\" format=\"ascii\">\n";
-    for (size_t cell = 0; cell < cells.size(); ++cell)
+    for (auto && c : M.cells())
     {
+      if(c.is_owned()) 
       f << parallel::rank() << ' ';
     }
     f << "\n        </DataArray>\n"
-      << "      </CellData>\n"
-      << "    </Piece>\n"
+      << "      </CellData>\n";
+    f << "      <PointData Scalars=\"mass\">\n"
+      << "        <DataArray type=\"Float64\" Name=\"mass\" format=\"ascii\">\n";
+    for(auto && v : M.vertices())
+    {
+      double mass = 0;
+      for (auto &&c : v.cells()) {
+        mass += c.measure();
+      }
+      f << mass << '\n'; // XXX used for example. Wrong for ghost vertices that are not on the inter-process frontier (requires synchronization)
+    }
+    f << "\n        </DataArray>\n"
+      << "      </PointData>\n";
+    f << "    </Piece>\n"
       << "  </UnstructuredGrid>\n"
       << "</VTKFile>\n";
   }
