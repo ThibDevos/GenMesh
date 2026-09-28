@@ -203,6 +203,7 @@ struct vtu
          << "    </PPointData>\n"
          << "    <PCellData Scalars=\"rank\">\n"
          << "      <PDataArray type=\"Int32\" Name=\"rank\" format=\"ascii\"/>\n"
+         << "      <PDataArray type=\"Float64\" Name=\"edge_mass\" format=\"ascii\"/>\n"
          << "    </PCellData>\n"
          << "    <PPoints>\n"
          << "      <PDataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\"/>\n"
@@ -235,9 +236,11 @@ struct vtu
 
     f << "<?xml version=\"1.0\"?>\n"
       << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n"
-      << "  <UnstructuredGrid>\n"
-      << "    <Piece NumberOfPoints=\"" << M.topo().nb_vertices()
-      << "\" NumberOfCells=\"" << M.topo().nb_owned_cells() << "\">\n";
+      << "  <UnstructuredGrid>\n";
+    M.topo().template get_connectivities<1, 0>();
+    f << "    <Piece NumberOfPoints=\"" << M.topo().nb_vertices()
+      << "\" NumberOfCells=\""
+      << M.topo().nb_owned_cells() + M.topo().nb_edges() << "\">\n";
 
     f << "      <Points>\n"
       << "        <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
@@ -262,6 +265,13 @@ struct vtu
         f << '\n';
       }
     }
+    for (auto && edge : M.edges())
+    {
+      for (auto && vertex : edge.vertices()) {
+        f << vertex.index() << ' ';
+      }
+      f << '\n';
+    }
     f << "        </DataArray>\n"
       << "        <DataArray type=\"Int64\" Name=\"offsets\" format=\"ascii\">\n";
     size_t offset = 0;
@@ -272,11 +282,20 @@ struct vtu
         f << offset << ' ';
       }
     }
+    for (auto && edge : M.edges())
+    {
+      offset += edge.nb_vertices();
+      f << offset << ' ';
+    }
     f << "\n        </DataArray>\n"
       << "        <DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">\n";
     for(int i=0; i<M.topo().nb_owned_cells(); ++i)
     {
       f << vtk_cell_type(M.topo().shape_type()[i]) << ' ';
+    }
+    for (auto && edge : M.edges())
+    {
+      f << 3 << ' ';
     }
     f << "\n        </DataArray>\n"
       << "      </Cells>\n"
@@ -286,6 +305,26 @@ struct vtu
     {
       if(c.is_owned()) 
       f << parallel::rank() << ' ';
+    }
+    for (auto && edge : M.edges())
+    {
+      f << parallel::rank() << ' ';
+    }
+    f << "\n        </DataArray>\n"
+      << "        <DataArray type=\"Float64\" Name=\"edge_mass\" format=\"ascii\">\n";
+    for (auto && c : M.cells())
+    {
+      if (c.is_owned()) {
+        f << 0.0 << ' ';
+      }
+    }
+    for (auto && edge : M.edges())
+    {
+      double mass = 0;
+      for (auto && cell : edge.cells()) {
+        mass += cell.measure();
+      }
+      f << mass << ' ';
     }
     f << "\n        </DataArray>\n"
       << "      </CellData>\n";
