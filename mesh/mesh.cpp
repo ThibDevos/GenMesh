@@ -27,6 +27,8 @@ int main()
     nb_cells = M2.topo().nb_cells();
     std::cout<<"nb cells "<<nb_cells<<std::endl;
     std::cout<<"nb vertices "<<M2.topo().nb_vertices()<<std::endl;
+    for(auto && e : M2.edges()){break;}
+    std::cout<<"nb edges "<<M2.topo().nb_edges()<<std::endl;
   } 
 
   MPI_Bcast(&nb_cells, 1, MPI_INT, 0, parallel::comm());
@@ -34,7 +36,9 @@ int main()
   Morton_partition<2> MP;
   mesh<2> M2_loc = MP.partition<2>(M2);
   std::cout<<parallel::rank()<<" has "<<static_cast<double>(M2_loc.topo().nb_cells())/nb_cells*100.<<"\% of the cells" <<std::endl;
-  std::cout<<parallel::rank()<<" has "<<static_cast<double>(M2_loc.topo().nb_vertices())<<"vertices" <<std::endl;
+  std::cout<<parallel::rank()<<" has "<<static_cast<double>(M2_loc.topo().nb_vertices())<<" vertices" <<std::endl;
+  for(auto && e : M2_loc.edges()){break;}
+  std::cout<<parallel::rank()<<" has "<<static_cast<double>(M2_loc.topo().nb_edges())<<" edges and "<<M2_loc.topo().nb_owned_edges()<<" owned edges" <<std::endl;
   vtu<mesh<2>>::write(M2_loc, "test_files/test_partition");
   return 0;
 }

@@ -1,6 +1,7 @@
 #ifndef MESH_TOPOLOGY_TOPOLOGY
 #define MESH_TOPOLOGY_TOPOLOGY
 
+#include "parallel/wrapper_mpi.h"
 #include <array>
 #include <algorithm>
 #include <cassert>
@@ -42,6 +43,25 @@ public:
       {
         indices.insert(indices.end(), relations[i].begin(), relations[i].end());
         offsets[i + 1] = indices.size();
+      }
+    }
+
+    void insert(const std::vector<std::vector<size_t>> &relations)
+    {
+      if (relations.empty())
+      {
+        return;
+      }
+      if (offsets.empty())
+      {
+        offsets.push_back(0);
+      }
+      size_t old_rows = size();
+      offsets.resize(old_rows + relations.size() + 1);
+      for (size_t i = 0; i < relations.size(); ++i)
+      {
+        indices.insert(indices.end(), relations[i].begin(), relations[i].end());
+        offsets[old_rows + i + 1] = indices.size();
       }
     }
 
@@ -88,10 +108,10 @@ private:
 
 
 public:
-  void set_nb_vertices(size_t n) { nb_entities_[0] = n; }
-  void set_nb_edges(size_t n) { nb_entities_[1] = n; }
-  void set_nb_facets(size_t n) { nb_entities_[D - 1] = n; }
-  void set_nb_cells(size_t n) { nb_entities_[D] = n; }
+  void set_nb_vertices(size_t n) { nb_entities_[0] = n; if(parallel::size()==1) nb_owned_entities_[0] = n; }
+  void set_nb_edges(size_t n) { nb_entities_[1] = n; if(parallel::size()==1) nb_owned_entities_[1] = n; }
+  void set_nb_facets(size_t n) { nb_entities_[D - 1] = n; if(parallel::size()==1) nb_owned_entities_[D - 1] = n; }
+  void set_nb_cells(size_t n) { nb_entities_[D] = n; if(parallel::size()==1) nb_owned_entities_[D] = n; }
 
   void set_nb_owned_vertices(size_t n) { nb_owned_entities_[0] = n; }
   void set_nb_owned_edges(size_t n) { nb_owned_entities_[1] = n; }
@@ -359,8 +379,8 @@ public:
   {
     std::cout << "build edges" << std::endl;
     std::vector<std::vector<size_t>> edge_v;
-    edge_v.reserve(3 * nb_entities_[D]);
-    for (int i = 0; i < nb_entities_[D]; ++i)
+    edge_v.reserve(3 * nb_owned_entities_[D]);
+    for (int i = 0; i < nb_owned_entities_[D]; ++i)
     {
       auto cell_v = connectivities_[D][0][i]; // contains indices of vertices composing the cell i
       auto ed = shapes::edge_desc[static_cast<int>(shape_type_[i])];
@@ -376,7 +396,27 @@ public:
     std::sort(edge_v.begin(), edge_v.end());
     edge_v.erase(std::unique(edge_v.begin(), edge_v.end()), edge_v.end());
     connectivities_[1][0].assign(edge_v);
-    nb_entities_[1] = edge_v.size();
+    nb_owned_entities_[1] = edge_v.size();
+
+    edge_v.resize(0);
+    edge_v.clear();
+    for (int i = nb_owned_entities_[D]; i < nb_entities_[D]; ++i)
+    {
+      auto cell_v = connectivities_[D][0][i]; // contains indices of vertices composing the cell i
+      auto ed = shapes::edge_desc[static_cast<int>(shape_type_[i])];
+      for (int j = 0; j < ed.nb_edge; ++j)
+      {
+        size_t v0 = cell_v[ed.edge_vertex[j][0]];
+        size_t v1 = cell_v[ed.edge_vertex[j][1]];
+        if (v0 > v1)
+          std::swap(v0, v1);
+        edge_v.push_back({v0, v1});
+      }
+    }
+    std::sort(edge_v.begin(), edge_v.end());
+    edge_v.erase(std::unique(edge_v.begin(), edge_v.end()), edge_v.end());
+    connectivities_[1][0].insert(edge_v);
+    nb_entities_[1] = nb_owned_entities_[1] + edge_v.size();
   }
 
   void build_faces() const

@@ -117,6 +117,7 @@ struct gmesh
     int nb_vertices;
     iss >> nb_vertices;
     M.topo().set_nb_vertices(nb_vertices);
+    M.topo().set_nb_owned_vertices(nb_vertices);
     M.geo().coords.resize(nb_vertices);
 
     int index = 0;
@@ -158,6 +159,7 @@ struct gmesh
     }
 
     M.topo().set_nb_cells(M.topo().template get_connectivities<M.dim_topo,0>().size());
+    M.topo().set_nb_owned_cells(M.topo().nb_cells());
   
   }
 
@@ -204,6 +206,7 @@ struct vtu
          << "    <PCellData Scalars=\"rank\">\n"
          << "      <PDataArray type=\"Int32\" Name=\"rank\" format=\"ascii\"/>\n"
          << "      <PDataArray type=\"Float64\" Name=\"edge_mass\" format=\"ascii\"/>\n"
+         << "      <PDataArray type=\"Float64\" Name=\"owned_ghost\" format=\"ascii\"/>\n"
          << "    </PCellData>\n"
          << "    <PPoints>\n"
          << "      <PDataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\"/>\n"
@@ -310,8 +313,8 @@ struct vtu
     {
       f << parallel::rank() << ' ';
     }
-    f << "\n        </DataArray>\n"
-      << "        <DataArray type=\"Float64\" Name=\"edge_mass\" format=\"ascii\">\n";
+    f << "\n        </DataArray>\n";
+    f  << "        <DataArray type=\"Float64\" Name=\"edge_mass\" format=\"ascii\">\n";
     for (auto && c : M.cells())
     {
       if (c.is_owned()) {
@@ -325,6 +328,18 @@ struct vtu
         mass += cell.measure();
       }
       f << mass << ' ';
+    }
+    f << "\n        </DataArray>\n";
+    f  << "        <DataArray type=\"Float64\" Name=\"owned_ghost\" format=\"ascii\">\n";
+    for (auto && c : M.cells())
+    {
+      if (c.is_owned()) {
+        f << 0.0 << ' ';
+      }
+    }
+    for (auto && edge : M.edges())
+    {
+      f << 10+edge.is_owned() << ' ';
     }
     f << "\n        </DataArray>\n"
       << "      </CellData>\n";
